@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://yoursite.com/"/>
-  <updated>2017-12-05T07:02:25.382Z</updated>
+  <updated>2017-12-06T07:30:22.873Z</updated>
   <id>http://yoursite.com/</id>
   
   <author>
@@ -17,24 +17,24 @@
   <generator uri="http://hexo.io/">Hexo</generator>
   
   <entry>
-    <title>first blog</title>
+    <title>HELLO WORLD</title>
     <link href="http://yoursite.com/2017/12/05/first-blog/"/>
     <id>http://yoursite.com/2017/12/05/first-blog/</id>
     <published>2017-12-05T06:59:33.000Z</published>
-    <updated>2017-12-05T07:02:25.382Z</updated>
+    <updated>2017-12-06T07:30:22.873Z</updated>
     
-    <content type="html"><![CDATA[<p>#这里是正文，用markdown写，你可以选择写一段显示在首页的简介后，加上<br><a id="more"></a>#在<!--more-->之前的内容会显示在首页，之后的内容会被隐藏，当游客点击Read more才能看到</p>]]></content>
+    <content type="html"><![CDATA[<p>  一直想要开一个自己的博客记录些东西，奈何技术渣属性一直没有如愿。<br>今天突然看到hexo的介绍，配合github搭建属于自己的博客还是挺方便的。<br>于是就有了这个博客。</p>]]></content>
     
     <summary type="html">
     
-      &lt;p&gt;#这里是正文，用markdown写，你可以选择写一段显示在首页的简介后，加上&lt;br&gt;
+      
+      
+        &lt;p&gt;  一直想要开一个自己的博客记录些东西，奈何技术渣属性一直没有如愿。&lt;br&gt;今天突然看到hexo的介绍，配合github搭建属于自己的博客还是挺方便的。&lt;br&gt;于是就有了这个博客。&lt;/p&gt;
+
+      
     
     </summary>
     
-    
-      <category term="博客" scheme="http://yoursite.com/tags/%E5%8D%9A%E5%AE%A2/"/>
-    
-      <category term="文章" scheme="http://yoursite.com/tags/%E6%96%87%E7%AB%A0/"/>
     
   </entry>
   
