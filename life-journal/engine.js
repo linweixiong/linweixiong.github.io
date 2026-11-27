@@ -427,6 +427,8 @@
   const regional = s => root.LifeFinance?.current(s) || false;
   const moneyText = (s,text) => root.LifeFinance?.moneyText(s,text) ?? text;
   const money = (s,n) => root.LifeFinance?.money(s,n) ?? (n+" 记账单位");
+  const hasLocalHouseholdBudget = s => s.edition === "regional-2" && s.countrySetVersion === 2 &&
+    (s.region === "JPN" || s.region === "MEX");
 
   function draw(seed, channel, age = 0) {
     let h = (seed ^ Math.imul(channel, 0x9e3779b1) ^ Math.imul(age, 0x85ebca77)) >>> 0;
@@ -947,6 +949,14 @@
     }
     if (root.CountryStories && input.version !== 2) s.localStoriesFrom = 0;
     else if (Number.isInteger(input.localStoriesFrom)) s.localStoriesFrom = input.localStoriesFrom;
+    if (hasLocalHouseholdBudget(s)) {
+      if (input.version !== 2) s.householdBudgetFrom = 0;
+      else if (Number.isInteger(input.householdBudgetFrom)) s.householdBudgetFrom = input.householdBudgetFrom;
+    }
+    if (s.edition === "regional-2" && localCities.includes(s.region)) {
+      if (input.version !== 2) s.cityArcFrom = 0;
+      else if (Number.isInteger(input.cityArcFrom)) s.cityArcFrom = input.cityArcFrom;
+    }
     if (input.version !== 2) s.storyFrom = 0;
     else if (Number.isInteger(input.storyFrom)) s.storyFrom = input.storyFrom;
     const setting = root.LifeWorld?.storySetting(s);
@@ -1378,10 +1388,17 @@
     if (s.pending) log(s,s.pending.title,s.pending.text,"decision",false,s.pending.sourceKey);
   }
 
+  function enableCityStoriesForNextYear(s) {
+    if (s.edition === "regional-2" && localCities.includes(s.region) && !owns(s,"cityArcFrom")) {
+      s.cityArcFrom = s.age + 1;
+    }
+  }
   function advance(s) {
     if (s?.version === 1) return legacy.advance(s);
     if (!s || s.version !== 2 || s.ended || s.pending) return s;
     const fresh = clone(s);
+    enableCityStoriesForNextYear(fresh);
+    if (hasLocalHouseholdBudget(fresh) && !owns(fresh,"householdBudgetFrom")) fresh.householdBudgetFrom = fresh.age + 1;
     if (root.CountryStories && !owns(fresh,"localStoriesFrom")) fresh.localStoriesFrom = fresh.age + 1;
     if (!owns(fresh,"storyFrom")) fresh.storyFrom = fresh.age + 1;
     tick(fresh);
@@ -1391,6 +1408,8 @@
     if (s?.version === 1) return legacy.next(s);
     if (!s || s.version !== 2 || s.ended || s.pending) return s;
     const fresh = clone(s);
+    enableCityStoriesForNextYear(fresh);
+    if (hasLocalHouseholdBudget(fresh) && !owns(fresh,"householdBudgetFrom")) fresh.householdBudgetFrom = fresh.age + 1;
     if (root.CountryStories && !owns(fresh,"localStoriesFrom")) fresh.localStoriesFrom = fresh.age + 1;
     if (!owns(fresh,"storyFrom")) fresh.storyFrom = fresh.age + 1;
     do { tick(fresh); } while (!fresh.ended && !fresh.pending && fresh.age !== 19);
@@ -1450,7 +1469,9 @@
       !Number.isInteger(s.age) || s.age < 0 || s.age > 105 || !Array.isArray(s.actions) ||
       !["tight","steady"].includes(s.family) || (owns(s,"edition") && s.edition !== "regional-2") || (owns(s,"localStoriesFrom") &&
       (!Number.isInteger(s.localStoriesFrom) || s.localStoriesFrom < 0 || s.localStoriesFrom > 105)) ||
-      (owns(s,"storyFrom") && (!Number.isInteger(s.storyFrom) || s.storyFrom < 0 || s.storyFrom > 105))) return false;
+      (owns(s,"storyFrom") && (!Number.isInteger(s.storyFrom) || s.storyFrom < 0 || s.storyFrom > 105)) ||
+      (owns(s,"householdBudgetFrom") && (!Number.isInteger(s.householdBudgetFrom) || s.householdBudgetFrom < 0 || s.householdBudgetFrom > 105)) ||
+      (owns(s,"cityArcFrom") && (!Number.isInteger(s.cityArcFrom) || s.cityArcFrom < 0 || s.cityArcFrom > 105))) return false;
     try {
       if (!originFor(s.region,s.birthYear)) return false;
       const canonical = rebuild(s,false);

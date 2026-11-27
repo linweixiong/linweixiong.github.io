@@ -90,10 +90,12 @@
   function localChoice(s,matches,draw) {
     if (!active(s)) return null;
     const iso = isoOf(s);
-    const pool = (packFor(s)?.choices || []).filter(x=>x.age===s.age && eligible(s,x,matches));
+    const pool = (packFor(s)?.choices || []).filter(x=>x.age===s.age &&
+      (!x.cityArc || (Number.isInteger(s.cityArcFrom) && s.age >= s.cityArcFrom)) && eligible(s,x,matches));
     if (!pool.length) return householdChoice(s);
     const row = pool[draw(s.seed,4722,s.age)%pool.length];
-    return {...row, id:"local-"+iso+"-"+row.id, sourceKey:iso+"/"+row.source, type:"choice", category:row.category||"personal"};
+    const detail = row.resolve ? row.resolve(s) : null;
+    return {...row,...detail,id:"local-"+iso+"-"+row.id,sourceKey:iso+"/"+row.source,type:"choice",category:row.category||"personal"};
   }
   function householdChoice(s) {
     if (s.age !== 10) return null;

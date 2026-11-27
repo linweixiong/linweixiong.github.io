@@ -42,7 +42,7 @@
   const mxQuarterToMonth = (154.676672089174/166.890369321443)/3;
   const mxPerMember = mxQuarterToMonth/3.70478;
   const surveyBudgets = {
-    JPN:{total:155046,food:41731,housing:22118+11383,travel:18916,
+    JPN:{total:155046,food:41731,housing:22118+11383,utilities:11383,travel:18916,
       renterHousing:55061*99.8/105.6+11383,youthAnnual:956*12*48},
     DEU:{total:1658,food:203,housing:704,travel:170,youthAnnual:987*12*.80},
     MEX:{total:34027.34*mxPerMember,food:13081*mxPerMember,housing:2738*mxPerMember,travel:6080*mxPerMember,
@@ -68,17 +68,27 @@
     const [,ppp,volume,foodPPP,foodVolume,housingPPP,housingVolume,travelPPP,travelVolume] = rows[s.region];
     const urban = s.residence === "urban";
     const child = s.childCount && s.age >= 29 && s.age < 47;
-    const shared = s.partnerStatus === "together" || s.decisions?.household === "share";
+    const revised = (s.region === "JPN" || s.region === "MEX") &&
+      Number.isInteger(s.householdBudgetFrom) && s.age >= s.householdBudgetFrom;
+    const formerPartner = s.partnerStatus === "separated" || s.partnerStatus === "widowed";
+    const shared = s.partnerStatus === "together" || (s.decisions?.household === "share" && !(revised && formerPartner));
+    // A sole adult paying for a dependent starts with the independent adult's budget.
+    // The child adjustments below model the additional outlay through age 46.
+    const independent = !shared && (s.decisions?.household === "alone" ||
+      (revised && (formerPartner || s.decisions?.relationship === "single")));
     const localBudget = surveyBudgets[s.region];
-    const survey = s.decisions?.household==="alone" && !shared && localBudget?.alone ? localBudget.alone : localBudget;
+    const survey = independent && localBudget?.alone ? localBudget.alone : localBudget;
     const toYear = 12/ppp;
     const foodBase = survey ? survey.food*toYear : foodPPP * foodVolume/ppp * .82;
-    const paysRent = shared || s.decisions?.household==="alone";
+    const owner = s.housing === "自有住房";
+    const paysRent = revised ? !owner && (shared || independent || s.housing === "租住") : shared || s.decisions?.household==="alone";
     const housingBase = survey ? (paysRent && survey.renterHousing ? survey.renterHousing : survey.housing)*toYear :
       housingPPP * housingVolume/ppp * (urban ? 1.1 : .85);
     const travelBase = survey ? survey.travel*toYear : travelPPP * travelVolume/ppp * .70;
     const food = round(foodBase*(child ? 1.32 : 1));
-    const housing = round(housingBase*(s.housing === "自有住房" ? .32 : 1)*(shared && s.region!=="MEX" ? .76 : 1));
+    const utilities = revised && owner && survey?.utilities ? survey.utilities*toYear : 0;
+    const tenureCost = owner ? (housingBase-utilities)*.32+utilities : housingBase;
+    const housing = round(tenureCost*(shared && s.region!=="MEX" ? .76 : 1));
     const mobility = s.commute === "shared" ? .67 : s.commute === "flexible" ? 1.19 : 1;
     const transport = round(travelBase*(child ? 1.12 : 1)*(s.retired ? .72 : 1)*mobility);
     const otherBase = survey ? (survey.total-survey.food-survey.housing-survey.travel)*toYear :
@@ -112,7 +122,14 @@
       DEU:"成年收入参照全职雇员月均税前4,100欧元，再按OECD单身平均工资者口径估算到手额。单人户月均消费1,658欧元，其中居住、能源和维护704欧元。双元制津贴参照集体协议培训岗位平均水平，工时、级别及分摊随人生变化。",
       MEX:"成年劳动收入参照全国雇员平均每小时44.25比索，按每年1,920小时估算，学生白班按576小时估算。家庭支出按普埃布拉州住户调查中的人均份额估算；独居改按单人户样本。住房服务含水电等费用，只计实际货币开支。"
     };
-    if (localNotes[s.region]) return "账本统一按2021年本币购买力显示。"+localNotes[s.region]+"调查基准和计算方法见资料页。";
+    if (localNotes[s.region]) {
+      let model="";
+      if (Number.isInteger(s.householdBudgetFrom) && s.age>=s.householdBudgetFrom) {
+        if (s.region==="JPN") model="独居、分居或丧偶后独自租住，均按单人租户口径。自有住房保留水电燃气，其他常规住居开支按调查基准的32%模拟，维修另计。";
+        if (s.region==="MEX") model="与伴侣或朋友合住时采用住户人均份额。独自负担住处时采用单人户基准，共同照料未成年子女时另计子女开销。自有住房的常规住居开支按相应基准的32%模拟，维修另计。";
+      }
+      return "账本统一按2021年本币购买力显示。"+localNotes[s.region]+model+"调查基准和计算方法见资料页。";
+    }
     let wage = "收入参照2021年平均小时报酬，按每年1,920小时建模。";
     if (s.region === "chengdu") wage="收入参照中国城镇私营单位年平均工资。";
     if (s.region === "lyon") wage="收入参照法国私营部门全时当量年平均税前工资。";
