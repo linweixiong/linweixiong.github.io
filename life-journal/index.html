@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#101021">
+  <title>人生手记 · 互动人生年鉴</title>
+  <link rel="stylesheet" href="./style.css?v=20261127-currency">
+  <link rel="stylesheet" href="./desk.css?v=20261127-currency">
+  <link rel="preload" as="font" type="font/woff2" href="./assets/fusion-hans.woff2" crossorigin>
+  <link rel="stylesheet" href="./night-base.css?v=20261127-night">
+  <link rel="stylesheet" href="./night-game.css?v=20261127-stories">
+</head>
+<body>
+  <a class="skip" href="#main">跳到正文</a>
+  <header class="masthead">
+    <div class="mast-inner">
+      <div class="brand"><span class="journal-mark" aria-hidden="true"></span><span>人生手记</span></div>
+      <div class="mast-actions"><span class="save-status" id="saveStatus" role="status"></span>
+        <details id="preferences" class="preferences"><summary class="text-btn">设置</summary>
+          <div class="pref-panel"><h2>阅读与声音</h2>
+            <label class="pref-row"><span>深夜配色</span><input id="darkMode" type="checkbox" checked></label>
+            <label class="pref-row"><span>原创轻音乐</span><input id="musicOn" type="checkbox"></label>
+            <label class="pref-volume" for="musicVolume">音乐音量 <output id="volumeText" for="musicVolume">25%</output></label>
+            <input id="musicVolume" type="range" min="0" max="100" value="25">
+            <small id="audioNotice" role="status"></small>
+          </div>
+        </details><button class="text-btn" type="button" data-action="help">玩法说明</button>
+      </div>
+    </div>
+  </header>
+  <div class="notice" id="notice" role="status" hidden></div>
+  <main id="main" tabindex="-1"></main>
+  <button type="button" id="miniClock" class="mini-clock" data-action="timeTop" title="返回人生时钟" hidden></button>
+  <footer class="foot"><span>人生手记</span><a href="./world-sources.html" target="_blank" rel="noopener">人口数据与故事背景</a></footer>
+  <dialog id="dialog" aria-labelledby="dialogTitle"><div class="dialog-inner"><h2 id="dialogTitle"></h2><p id="dialogText"></p><a id="dialogSources" href="./world-sources.html" target="_blank" rel="noopener" hidden>查看世界人口资料来源</a><div class="dialog-actions"><button class="secondary" type="button" id="dialogCancel">返回</button><button class="primary" type="button" id="dialogOk">确定</button></div></div></dialog>
+  <noscript>请启用浏览器 JavaScript，以开始或继续这段人生。</noscript>
+  <script src="./world-data.js"></script>
+  <script src="./world-cohorts.js"></script>
+  <script src="./life-world.js?v=20261127-curated"></script>
+  <script src="./content.js"></script>
+  <script src="./chapters.js"></script>
+  <script src="./living-data.js"></script>
+  <script src="./country-stories.js?v=20261127-curated"></script>
+  <script src="./stories-egypt.js"></script>
+  <script src="./stories-india-brazil.js"></script>
+  <script src="./stories-indonesia-nigeria.js"></script>
+  <script src="./stories-pakistan-bangladesh.js"></script>
+  <script src="./stories-review-households.js"></script>
+  <script src="./stories-review-cities.js"></script>
+  <script src="./stories-review-africa-indonesia.js"></script>
+  <script src="./legacy-currencies.js?v=20261127-currency"></script>
+  <script src="./finance.js?v=20261127-currency"></script>
+  <script src="./life-family.js"></script>
+  <script src="./thread-friends.js"></script>
+  <script src="./thread-home.js"></script>
+  <script src="./thread-chance.js"></script>
+  <script src="./keepsakes.js?v=20261127-lived"></script>
+  <script src="./engine.js?v=20261127-stories"></script>
+  <script src="./desk.js?v=20261127-lived"></script>
+  <script src="./clock.js?v=20261127-night"></script>
+  <script src="./preferences.js?v=20261127-night"></script>
+  <script src="./app.js?v=20261127-lived"></script>
+</body>
+</html>

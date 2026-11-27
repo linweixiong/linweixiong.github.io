@@ -1,0 +1,64 @@
+#lifeDesk{display:grid;align-content:start;gap:12px;min-width:0}.desk-card{border:1px solid var(--line,#cbd5cb);border-radius:5px;background:var(--card,#fffdf5);min-width:0}.desk-card>summary{padding:13px 14px;cursor:pointer;font:700 16px/1.5 var(--serif,serif)}.desk-card[open]>summary{border-bottom:1px solid var(--line,#ced6c9)}.desk-body{padding:12px 14px;min-width:0}.desk-family,.desk-peers,.desk-records{list-style:none;margin:0;padding:0}.desk-family li,.desk-peers li{display:flex;justify-content:space-between;gap:10px;align-items:start;padding:7px 0;border-bottom:1px solid var(--line,#dce2d5);font-size:14px}.desk-family li>span{flex:none;color:var(--quiet,#536258)}.desk-family li>div,.desk-peers li>div:last-child{text-align:right}.desk-family small,.desk-peers small{display:block;font-size:12px;color:var(--quiet,#536258)}.desk-peers li>div{min-width:0;overflow-wrap:anywhere}.desk-caption,.desk-sub{font-size:13px;line-height:1.6;margin:7px 0;color:var(--quiet,#536258)}.desk-shop{display:grid;gap:6px}.desk-shop button{display:grid;grid-template-columns:1fr auto;gap:3px;text-align:left;background:transparent;border:1px solid var(--line,#cbd5cb);border-radius:4px;padding:8px 9px;font-size:14px}.desk-shop small{grid-column:1/-1;font-size:12px;color:var(--quiet,#536258)}.desk-shop button:disabled{opacity:.65}.desk-body h3{font-size:15px;margin:9px 0}.desk-grid{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:3px}.desk-grid>*{min-width:0;aspect-ratio:1}.desk-grid button{padding:0;font:600 11px/1 system-ui;border:1px solid transparent;border-radius:2px;background:#cfddd1;color:#204c41}.desk-grid .unlived{background:#e9eee6;border-radius:2px}.desk-grid .milestone{background:#7da78c;color:#112d21}.desk-grid .today{border:2px solid #943a42}.desk-grid [aria-pressed=true]{outline:2px solid #254e42;outline-offset:-2px}.desk-records li{display:flex;gap:5px;align-items:start;margin:6px 0;font-size:14px}.desk-records p{font-size:13px}.desk-star{font-size:18px;background:transparent;padding:2px 4px;color:#826326}.desk-note{display:grid;gap:5px}.desk-note label{font-weight:600;font-size:14px}.desk-note textarea{display:block;resize:vertical;width:100%;padding:7px;font:inherit;border:1px solid var(--line,#cbd5cb);background:#fffdf5;color:inherit;border-radius:4px}.desk-note button{justify-self:start;background:#245647;color:white;padding:5px 12px;border-radius:4px}.desk-note [role=status]{font-size:12px}.desk-survival{width:100%;font-size:12px}.desk-survival caption{text-align:left;font-size:13px}.desk-survival th{text-align:left;font-weight:500}.desk-survival td:last-child{text-align:right}.desk-survival td:nth-child(2){width:35%}.desk-survival .percent{display:block;background:#e2e9df;height:6px}.desk-survival .percent i{display:block;height:6px;background:#719582}#lifeScene{display:block;width:100%;height:auto;image-rendering:pixelated;aspect-ratio:320/104;background:#c1d5da;border-radius:4px}.desk-body a{text-decoration:underline}.desk-finance{display:flex;flex-wrap:wrap;gap:3px 12px;margin:3px 0 10px;font-size:13px}
+.balance-card {margin-top:12px}
+.balance-currency {margin-top:2px;color:var(--quiet);font-size:14px}
+.balance-card dl {display:grid;gap:7px;margin:10px 0 14px}
+.balance-card dl>div,.money-lines>div,.money-history>li,.more-transactions li {display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.balance-card dt,.money-period,.money-basis,.money-empty {color:var(--quiet);font-size:14px}
+.balance-card dd,.money-balances dd,.cash-flow dd,.money-lines dd {font-weight:650;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.balance-card dd {text-align:right;font-size:14px}
+.balance-card button {width:100%}
+dialog.wallet {box-sizing:border-box;width:min(660px,calc(100% - 36px));max-height:88dvh;overflow:hidden;margin:auto;padding:0;border:1px solid var(--line);color:var(--ink);background:var(--card)}
+.wallet[open] {display:flex;flex-direction:column}
+.wallet-head {flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 18px;color:var(--quiet);background:var(--paper);border-bottom:1px solid var(--line);font-size:14px}
+.wallet-close {min-height:34px;background:transparent;text-decoration:underline;text-underline-offset:3px}
+.wallet-scroll {overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
+.money-overview,.wallet-content {padding:18px 20px}
+.money-total {display:flex;align-items:end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.money-total p {font-size:13px;color:var(--accent);font-weight:650}
+.money-total h2 {font-size:24px}
+.money-total strong {font-size:clamp(20px,3.2vw,34px);line-height:1.3;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.money-balances,.cash-flow {margin:14px 0 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 18px}
+.money-balances {padding:12px 14px;background:var(--tint);border-radius:4px}
+.money-balances dt,.cash-flow dt {color:var(--quiet);font-size:13px}
+.money-balances dd,.cash-flow dd {font-size:16px}
+.money-basis {margin:6px 0 0;line-height:1.55}
+.money-context {display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:4px 14px;margin-top:8px;font-size:14px;color:var(--quiet)}
+.money-context details[open] {width:100%}.money-context summary{cursor:pointer;text-decoration:underline;text-underline-offset:3px}.money-context details p{margin:4px 0}
+.wallet-tabs {position:sticky;top:0;z-index:1;background:var(--card);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:0 16px;gap:3px;border-bottom:1px solid var(--line)}
+.wallet-tabs button {min-height:41px;padding:6px 3px;background:transparent;color:var(--quiet);border-bottom:3px solid transparent;font-size:14px}
+.wallet-tabs button[aria-pressed=true] {color:var(--ink);font-weight:700;border-bottom-color:var(--green);background:var(--tint)}
+.wallet-content {padding-top:14px}
+.wallet-content h3 {font-size:18px;margin:0 0 3px}
+.wallet-content h3:not(:first-child){margin-top:20px}
+.money-period {margin:0 0 8px;font-size:13px}
+.cash-flow {grid-template-columns:repeat(3,minmax(0,1fr));padding:10px 0;border-block:1px solid var(--line)}
+.money-lines {margin-top:8px}.money-lines>div,.money-history>li {padding:4px 0;font-size:14px}
+.money-subtitle {margin:12px 0 2px;font-size:14px}
+.money-history,.money-trades {list-style:none;padding:0;margin:8px 0 0}
+.money-history>li {border-bottom:1px solid var(--line)}
+.money-history strong {text-align:right;overflow-wrap:anywhere}
+.money-history small {display:block;font-size:13px;color:var(--quiet)}
+.money-trades>li {display:grid;grid-template-columns:minmax(0,1fr) minmax(95px,auto);gap:10px;padding:12px 0;border-top:1px solid var(--line)}
+.money-trades h4,.money-trades p {margin:0}
+.money-trades h4 {font-size:16px}.money-trades p{font-size:14px;color:var(--quiet)}
+.money-trades li>div:last-child {display:flex;flex-direction:column;align-items:end;gap:4px}
+.money-trades strong {font-size:14px;overflow-wrap:anywhere;text-align:right}
+.money-trades button {min-width:70px;min-height:36px;border-radius:4px;padding:4px 9px;background:var(--green);color:var(--card);font-size:14px}
+.money-trades button:disabled {background:var(--tint);color:var(--quiet);opacity:1}
+.wallet-receipt:not(:empty) {margin:10px 20px 0;padding:8px 10px;background:var(--tint);font-size:14px}
+.more-transactions {margin-top:8px;font-size:14px}
+.ledger th small {display:block;color:var(--quiet);font-weight:400;font-size:12px;white-space:nowrap}
+@media(max-width:710px) {
+  .vitals-slot .balance-card {display:none}
+  dialog.wallet {width:calc(100% - 16px);max-height:93dvh}
+  .wallet-head {padding:6px 12px}.wallet-content,.money-overview{padding:12px}
+  .wallet-tabs {padding-inline:6px;grid-template-columns:1fr 1fr 1.27fr .67fr}.wallet-tabs button{white-space:nowrap}.money-balances{padding:8px 10px}
+  .cash-flow {display:flex;flex-wrap:wrap;gap:7px 14px}.cash-flow>div{flex:1 1 88px}
+  .ledger {display:block;width:100%}.ledger caption{display:block}
+  .ledger thead {position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+  .ledger tbody {display:grid;gap:5px}
+  .ledger tr {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;padding:8px 10px;border:1px solid var(--line);border-radius:4px}
+  .ledger th[scope=row] {grid-column:1/-1;color:var(--accent);font-weight:700}
+  .ledger tr td,.ledger tr th {text-align:left;border:none;padding:0;overflow-wrap:anywhere}
+  .ledger td::before {content:attr(data-col);display:block;color:var(--quiet);font-size:12px}
+}

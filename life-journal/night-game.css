@@ -1,0 +1,276 @@
+/* The clock, the journal and the ledger share the same reading palette. */
+:root {
+  --night-page:#101021;
+  --night-panel:#18182d;
+  --night-raised:#24223b;
+  --night-field:#111222;
+  --night-line:#46445d;
+  --night-strong:#827598;
+  --night-text:#f3e7d1;
+  --night-muted:#c3b5cc;
+  --night-gold:#ffc579;
+  --night-violet:#b19bff;
+  --night-cool:#8bd6cd;
+  --night-button-ink:#171424;
+}
+:root[data-theme="light"] {
+  --night-page:#202035;
+  --night-panel:#29283e;
+  --night-raised:#34324b;
+  --night-field:#202035;
+  --night-line:#5e5970;
+  --night-strong:#978aa8;
+  --night-text:#fff2df;
+  --night-muted:#dbcfdf;
+  --night-gold:#ffd393;
+  --night-violet:#c4b2ff;
+  --night-cool:#a6e7df;
+}
+:is(.registration,.clock-panel,.mobile-tabs,.dashboard,.legacy-banner,.mini-clock,.pref-panel,#dialog,.wallet,#pastLives,.source-sheet) {
+  --ink:var(--night-text); --quiet:var(--night-muted); --card:var(--night-panel);
+  --paper:var(--night-field); --line:var(--night-line); --tint:var(--night-raised);
+  --green:var(--night-cool); --accent:var(--night-gold);
+  color:var(--night-text);
+}
+.dashboard :is(.pane,.journal,.profile,.report,.recall,.desk-card),
+.registration .birth-card,#pastLives .desk-card,dialog.wallet,#dialog,.pref-panel {
+  border:1px solid var(--night-line);border-radius:2px;background:var(--night-panel);
+}
+.dashboard {gap:14px}
+.dashboard :is(.profile,.pane,.desk-card),.reading,.vitals-slot,.identity-slot {min-width:0}
+.dashboard :is(h1,h2,h3),.registration h1,.wallet :is(h2,h3,h4) {color:var(--night-text)}
+.dashboard :is(summary,a),.registration summary,.wallet summary {text-underline-offset:.22em}
+:is(.dashboard,.registration,.wallet,#pastLives,.source-sheet) summary::marker {color:var(--night-violet)}
+.dashboard a,.registration a,#dialog a,.source-sheet a {color:var(--night-cool)}
+.dashboard :is(a,button,summary,textarea,select):focus-visible,
+:is(.clock-panel,.registration,.wallet,.pref-panel,#dialog,#pastLives,.source-sheet) :focus-visible {
+  outline:2px solid var(--night-gold);outline-offset:2px;
+}
+:is(.registration,.clock-panel,.dashboard,.wallet) :is(select,textarea) {
+  min-width:0;color-scheme:dark;color:var(--night-text);background:var(--night-field);
+  border:1px solid var(--night-strong);border-radius:2px;
+}
+.dashboard :is(.pane,.desk-card,.journal) :is(h2,h3) {line-height:1.4}
+.dashboard .pane {padding:16px}
+.dashboard .desk-card>summary,.dashboard details.journal>summary {font-size:17px}
+.desk-card>summary:hover,.journal>summary:hover,#pastLives summary:hover {color:var(--night-gold)}
+
+/* Registration is printed as an admission ticket; keep the information first. */
+.registration {align-items:center;gap:clamp(18px,3vw,44px);margin:clamp(24px,6vh,76px) 0 16px}
+.registration .birth-card {position:relative;padding:clamp(20px,3.4vw,50px);border-top:2px solid var(--night-gold)}
+.birth-card::after,.dashboard .decision::after,.dashboard .report::after,.dashboard .recall::after {
+  content:"";pointer-events:none;position:absolute;right:9px;top:9px;width:4px;height:4px;
+  color:var(--night-gold);background:currentColor;box-shadow:-4px 0 currentColor,0 4px currentColor;
+}
+.birth-card .eyebrow {margin-bottom:8px}
+.registration h1 {line-height:1.18;letter-spacing:.02em}
+.registration .birth-facts {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 20px;padding-block:13px;margin:18px 0;border-block:1px dashed var(--night-line)}
+.birth-facts div {display:block;min-width:0}
+.birth-facts dt {font-size:13px;line-height:1.45}
+.birth-facts dd {font-size:16px;line-height:1.55;overflow-wrap:anywhere}
+.birth-story {font-size:16px;line-height:1.85}
+.birth-context {font-size:14px}
+.birth-card .story-actions {align-items:end}
+.registration .thumb,.registration-scene #lifeScene {border-radius:1px;border:1px solid var(--night-line);box-shadow:5px 5px 0 var(--night-field)}
+.registration .thumb {height:clamp(240px,46vh,510px)}
+.registration-scene {margin:0}
+.registration-scene figcaption {margin-top:9px;font-size:13px}
+
+/* The active year is a station board; minimal markings outside the clock. */
+:root .clock-panel,:root[data-theme] .clock-panel {
+  position:relative;color:var(--night-text);background:var(--night-panel);border:1px solid var(--night-line);
+  border-top:2px solid var(--night-gold);border-radius:2px;padding:14px 20px;margin:16px 0;
+}
+.clock-heading {align-items:center;gap:10px 16px}
+.clock-heading .eyebrow {color:var(--night-gold);font-size:12px}
+.clock-heading .eyebrow::before {width:7px;height:7px;box-shadow:8px 0 var(--night-line);margin-right:7px}
+.clock-heading h1 {line-height:1.23;font-variant-numeric:tabular-nums}
+.clock-heading h1 span {margin-left:12px;font-weight:600}
+.clock-date,.clock-finance {min-width:0}
+.clock-date strong {color:var(--night-cool);font-size:17px;letter-spacing:.025em}
+.clock-date small,.clock-finance small {color:var(--night-muted);font-size:12px}
+.year-meter {margin:8px 0 3px;gap:10px}
+.year-meter progress {display:block;height:9px;appearance:none;border:1px solid var(--night-strong);border-radius:0;background:var(--night-field);color:var(--night-gold)}
+.year-meter progress::-webkit-progress-bar {background:var(--night-field)}
+.year-meter progress::-webkit-progress-value {background:var(--night-gold)}
+.year-meter progress::-moz-progress-bar {background:var(--night-gold)}
+.year-meter span {color:var(--night-gold);font:650 13px/1.45 var(--sans, sans-serif);font-variant-numeric:tabular-nums}
+.clock-pace {color:var(--night-muted);font-size:12px}
+.time-controls {gap:8px 14px;align-items:center}
+.speeds {border:1px solid var(--night-line);padding:2px;gap:1px;background:var(--night-field)}
+.speeds button {border:0;min-width:31px;min-height:31px;border-radius:0;background:transparent;color:var(--night-muted);font-size:13px;font-variant-numeric:tabular-nums}
+.speeds button:hover {color:var(--night-text);background:var(--night-raised)}
+:root[data-theme] .speeds button[aria-pressed=true] {background:var(--night-gold);color:var(--night-button-ink)}
+.time-controls .text-btn {color:var(--night-muted);text-decoration-color:var(--night-strong)}
+.clock-panel input[type=checkbox],.pref-panel input {accent-color:var(--night-cool)}
+:root[data-theme] .mini-clock {background:var(--night-raised);border:1px solid var(--night-gold);color:var(--night-gold);border-radius:1px;box-shadow:2px 2px 0 var(--night-field)}
+.mobile-tabs a {color:var(--night-cool);text-underline-offset:3px}
+.dashboard #lifeScene,.registration #lifeScene {display:block;background:var(--night-raised);border-radius:1px;image-rendering:pixelated}
+.dashboard #lifeScene {border:1px solid var(--night-line)}
+.dashboard .identity-band {padding:8px 14px;border-bottom:1px solid var(--night-line);background:var(--night-raised);color:var(--night-violet)}
+.identity-band h2 {color:var(--night-text)}
+.identity-band span,.stats dd,.vitals b,.cash-flow dd,.money-balances dd,.balance-card dd,.ledger,.money-history strong {font-variant-numeric:tabular-nums}
+.dashboard .profile-body {padding:15px}
+.dashboard .profile-body h3 {font-size:25px}
+.dashboard .stats {gap:7px}
+.dashboard .stats>div {grid-template-columns:minmax(74px,.8fr) minmax(0,1.15fr)}
+.profile .birth-context {margin:12px 0 0;padding-top:10px;border-top:1px solid var(--night-line)}
+.vitals meter {appearance:none;height:8px;border:0;border-radius:0;background:var(--night-field)}
+.vitals meter::-webkit-meter-bar {height:8px;background:var(--night-field);border:1px solid var(--night-line);border-radius:0;box-shadow:none}
+.vitals dl>div:nth-child(n) meter::-webkit-meter-optimum-value {background:var(--night-cool);border-radius:0}
+.vitals meter::-moz-meter-bar {background:var(--night-cool)}
+.vitals b {color:var(--night-cool)}
+.balance-card dl>div {padding:3px 0;border-bottom:1px solid var(--night-line)}
+.balance-card dd {color:var(--night-text)}
+.balance-card dl>div:first-child dd,.balance-currency {color:var(--night-gold)}
+.focus-panel {border-left:3px solid var(--night-violet)}
+.focus-panel select {margin-left:auto}
+.live-records {margin-top:7px}
+.live-records li {position:relative;padding:12px 0 12px 14px}
+.live-records li::before {content:"";display:block;position:absolute;width:4px;height:4px;left:0;top:21px;background:var(--night-violet)}
+.live-records li:first-child::before {background:var(--night-gold)}
+.live-records p,.timeline p,.memories p {line-height:1.75}
+.passage li {border-color:var(--night-violet)}
+.live-records li>span,.timeline .age,.memories b {color:var(--night-gold)}
+.journal-links {padding:0 4px}
+
+/* Choices stay equal in weight and retain their full consequences. */
+:root .dashboard .decision,:root[data-theme] .dashboard .decision,.dashboard :is(.report,.recall) {
+  position:relative;background:var(--night-panel);border:1px solid var(--night-line);border-top:2px solid var(--night-gold);
+  border-radius:2px;padding:clamp(16px,1.8vw,26px);
+}
+.decision-heading {padding-right:10px}
+.decision-heading .meta,.reflection .meta {color:var(--night-gold)}
+.decision h2,.report h2,.recall h2 {font-size:clamp(22px,2.1vw,31px);line-height:1.35}
+.decision>p,.recall>p {font-size:16px}
+.decision-options {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,175px),1fr));gap:9px}
+:root .dashboard .decision-options button,:root[data-theme] .dashboard .decision-options button {
+  display:block;position:relative;min-width:0;padding:12px 13px;align-content:start;height:100%;
+  border:1px solid var(--night-strong);border-radius:1px;background:var(--night-raised);color:var(--night-text);
+}
+.decision-options button strong {display:block;font-size:16px;line-height:1.5}
+.decision-options button small {font-size:14px;line-height:1.65;margin-top:5px;color:var(--night-muted)}
+:root[data-theme] .dashboard .decision-options button:enabled:hover {border-color:var(--night-gold);background:var(--night-field)}
+:root[data-theme] .dashboard .decision-options button:disabled {border-style:dashed;opacity:.7}
+.reflection textarea,.desk-note textarea {line-height:1.6;resize:vertical}
+.dashboard .report {border-top-color:var(--night-cool)}
+.dashboard .report::after {color:var(--night-cool)}
+.dashboard .recall {border-top-color:var(--night-violet)}
+.dashboard .recall::after {color:var(--night-violet)}
+.ledger {margin:13px 0 8px;line-height:1.55}
+.ledger caption {padding:3px 0 7px;color:var(--night-cool);font-weight:600}
+.ledger thead,.end-facts {background:var(--night-field)}
+.ledger th,.ledger td {padding:8px 4px}
+.ledger td {color:var(--night-text)}
+.ledger tbody tr:last-child td:last-child {color:var(--night-gold)}
+.report-desc,.timeline p {font-size:14px}
+.end-facts {padding:12px 14px;color:var(--night-text)}
+.memories {position:relative;padding-left:12px;border-left:1px dashed var(--night-strong)}
+.memories li {position:relative;padding:3px 0 10px;margin:0 0 8px}
+.memories li::before {content:"";position:absolute;left:-15px;top:12px;width:5px;height:5px;background:var(--night-violet)}
+.memories li:last-child::before {background:var(--night-gold)}
+.keepsake-pages {margin-block:1.4rem}
+.keepsake-pages>h3 {margin-bottom:.5rem;color:var(--night-gold);font-size:1.45rem}
+.keepsake-pages details {padding:.3rem .85rem;border-left:2px solid var(--night-line);margin-block:.6rem}
+.keepsake-pages details[open] {border-left-color:var(--night-violet);background:var(--night-raised)}
+.keepsake-pages summary {padding:.45rem 0;color:var(--night-text);font-weight:650}
+.keepsake-pages .memories {margin-block:.3rem 0}
+:root[data-theme] .legacy-banner {background:var(--night-raised);border-left-color:var(--night-gold)}
+
+/* Side desk, life map and recollections. */
+.desk-card>summary {padding:12px 14px}
+.desk-card[open]>summary {background:var(--night-raised)}
+.desk-body {padding:10px 14px 14px}
+.desk-family li,.desk-peers li {padding:8px 0}
+.desk-family li:last-child,.desk-peers li:last-child {border-bottom:0}
+.desk-sub,.desk-caption,.desk-records p {font-size:14px}
+.desk-family small,.desk-peers small {font-size:13px}
+.desk-grid {grid-template-columns:repeat(10,minmax(0,1fr));gap:4px}
+.desk-body canvas[data-desk-map-scene] {display:block;width:100%;height:auto;image-rendering:pixelated;background:var(--night-field);border:1px solid var(--night-line);margin:8px 0}
+.desk-grid button,.desk-grid .unlived {border-radius:0}
+.desk-grid button {color:var(--night-text);background:var(--night-raised);border:1px solid var(--night-line)}
+:root[data-theme] .desk-grid .unlived {background:var(--night-field);border:1px solid var(--night-line)}
+.desk-grid button.milestone {background:var(--night-violet);color:var(--night-button-ink)}
+.desk-grid button.today {border:2px solid var(--night-gold)}
+.desk-grid button[aria-pressed=true] {outline:2px solid var(--night-cool);outline-offset:-3px}
+:root[data-theme] .desk-star {color:var(--night-gold);background:transparent}
+:root[data-theme] .desk-note textarea {background:var(--night-field);border:1px solid var(--night-strong);border-radius:1px}
+.desk-note button,.money-trades button {background:var(--night-cool);color:var(--night-button-ink);border:1px solid var(--night-cool);border-radius:1px}
+:root[data-theme] .desk-survival .percent {background:var(--night-field);outline:1px solid var(--night-line)}
+.desk-survival .percent i {background:var(--night-cool)}
+#pastLives .desk-body details {padding:7px 0;border-bottom:1px solid var(--night-line)}
+#pastLives .desk-body details:last-child {border:0}
+
+/* Finance and secondary controls. */
+dialog.wallet,#dialog,.pref-panel {border-color:var(--night-strong);box-shadow:4px 4px 0 #0b0b19}
+dialog.wallet::backdrop,#dialog::backdrop {background:rgba(7,7,17,.8)}
+.wallet-head {min-height:46px;padding-inline:18px;background:var(--night-field);color:var(--night-muted)}
+.wallet-close,.wallet .money-context summary {color:var(--night-cool)}
+.money-total h2 {font-size:22px}.money-total strong {color:var(--night-gold)}
+.money-total p {color:var(--night-muted)}
+.money-balances {background:var(--night-field);border-radius:0}
+.money-balances dt,.cash-flow dt,.wallet .money-period {font-size:14px}
+.wallet-tabs {background:var(--night-panel)}
+.wallet-tabs button {background:var(--night-panel);color:var(--night-muted)}
+.wallet-tabs button[aria-pressed=true] {color:var(--night-gold);border-bottom-color:var(--night-gold);background:var(--night-raised)}
+.wallet .cash-flow {margin:8px 0;gap:10px;text-align:start}
+.cash-flow dd,.money-lines dd {color:var(--night-text)}
+.money-lines dd,.money-history strong {text-align:right}
+.money-trades strong {color:var(--night-gold)}
+.money-trades button:disabled {background:var(--night-field);color:var(--night-muted);border:1px dashed var(--night-line)}
+.wallet-receipt:not(:empty) {color:var(--night-cool);background:var(--night-raised);border-left:2px solid var(--night-cool)}
+.pref-panel {padding:16px;width:min(255px,calc(100vw - 28px))}
+.pref-panel h2 {color:var(--night-gold)}
+.pref-panel input[type=range],.pref-panel .pref-row input {accent-color:var(--night-cool)}
+#dialog {max-height:88dvh;overflow:auto}
+#dialog .dialog-inner {padding:clamp(18px,4vw,30px)}
+#dialog .dialog-inner p {line-height:1.8;color:var(--night-muted)}
+#dialogTitle {color:var(--night-gold)}
+
+/* Standalone source archive. */
+.source-sheet {box-sizing:border-box;margin:0;background:var(--night-page);color:var(--night-text);font:16px/1.85 var(--sans,system-ui,"Microsoft YaHei",sans-serif);color-scheme:dark}
+.source-sheet * {box-sizing:border-box}
+.source-sheet main {width:min(100% - 28px,53rem);max-width:unset;margin:clamp(15px,4vw,56px) auto;padding:clamp(17px,4.6vw,60px);border:1px solid var(--night-line);border-top:2px solid var(--night-gold);background:var(--night-panel)}
+.source-sheet h1,.source-sheet h2 {font-family:var(--serif,Georgia,"SimSun",serif);letter-spacing:.025em;line-height:1.4}
+.source-sheet h1 {margin:.45em 0 .6em;color:var(--night-gold);font-size:clamp(26px,4vw,40px);text-wrap:balance}
+.source-sheet h2 {scroll-margin:16px;margin:1.8em 0 .55em;padding-top:14px;border-top:1px solid var(--night-line);color:var(--night-text);font-size:clamp(20px,2.4vw,24px)}
+.source-sheet p,.source-sheet li {margin:.65em 0;overflow-wrap:anywhere}
+.source-sheet a {text-underline-offset:.2em}
+.source-sheet a:hover,.source-sheet summary:hover {color:var(--night-gold)}
+.source-sheet nav {display:flex;flex-wrap:wrap;gap:5px 15px;margin:8px 0;font-size:14px}
+.source-sheet details {border-bottom:1px solid var(--night-line);padding:6px 0}
+.source-sheet summary {cursor:pointer;color:var(--night-text)}
+.source-sheet ul {padding-left:1.4em}
+
+@media(max-width:710px){
+  .registration {margin-top:18px;gap:15px}
+  .registration .birth-card {padding:18px}
+  .registration .birth-facts {gap:7px 12px;margin:13px 0;padding-block:10px}
+  .registration .thumb {height:170px;min-height:0}
+  .registration #lifeScene {max-height:170px;object-fit:contain}
+  :root[data-theme] .clock-panel {padding:12px;margin:12px 0}
+  .clock-heading {gap:7px}
+  .clock-heading h1 span {margin-left:5px}
+  .clock-date strong {font-size:15px}
+  .clock-finance {margin-top:2px}
+  .time-controls {gap:7px 9px}
+  .speeds button {min-width:27px;padding-inline:5px}
+  .mobile-tabs {gap:7px 15px}
+  .dashboard,.reading,#lifeDesk {gap:10px}
+  .dashboard .pane {padding:13px}
+  .decision-options {grid-template-columns:1fr}
+  .focus-panel label {font-size:17px}
+  .ledger tbody {gap:8px}
+  .ledger tr {border-radius:0;background:var(--night-field)}
+  .ledger td::before {font-size:13px}
+  .ledger th[scope=row] {display:flex;align-items:baseline;gap:8px}
+  .wallet-head {padding-inline:12px}
+  .wallet-tabs button {min-height:42px}
+  .wallet .cash-flow {display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .wallet .cash-flow>div:last-child:nth-child(odd) {grid-column:1/-1}
+  .source-sheet main {width:calc(100% - 16px);padding:16px;margin:8px auto 20px}
+  .source-sheet nav {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 8px}
+}
+@media(prefers-reduced-motion:reduce){
+  :is(.registration,.clock-panel,.dashboard,.wallet,#dialog,#pastLives) * {scroll-behavior:auto}
+}

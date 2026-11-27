@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-Hans"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>数据与模型说明 · 人生手记</title><meta name="theme-color" content="#101021">
+<link rel="stylesheet" href="./night-base.css?v=night1">
+<link rel="stylesheet" href="./night-game.css?v=night1">
+<script>
+try {
+  const saved = JSON.parse(localStorage.getItem("rensheng-shouji.reading.v1"));
+  if (typeof saved?.dark === "boolean") {
+    document.documentElement.dataset.theme = saved.dark ? "dark" : "light";
+    document.querySelector('meta[name="theme-color"]').content = saved.dark ? "#101021" : "#252539";
+  }
+} catch {}
+</script></head><body class="source-sheet"><main>
+<a href="./index.html">返回人生手记</a><h1>出生地、年代与一生的长度</h1>
+<nav aria-label="资料目录"><a href="#birth">出生抽签</a><a href="#clock">时钟与寿命</a><a href="#stories">故事资料</a><a href="#accounts">家庭账本</a><a href="#history">历史年记</a></nav>
+<h2 id="birth">出生抽签</h2><p>每一局会在九个有地方故事的国家之间抽取出生地：中国（成都）、法国（里昂）、埃及、印度、印度尼西亚、尼日利亚、巴西、巴基斯坦、孟加拉国。同年出生的其他角色也从这个范围抽取。「现在」从 2026 年开始，以世界银行 2023 年资料为基准。按出生人数抽取时，用各国人口乘以粗出生率重新分配这九国之间的机会；按在世人口抽取时直接按人口分配。中国、法国的权重和指标是全国口径，成都和里昂是故事地点。印度目前有旁遮普邦和泰米尔纳德邦两套家庭背景，游戏为叙事安排地点，邦别抽取不代表真实人口比例。<a href="https://data.worldbank.org/indicator/SP.DYN.CBRT.IN">世界银行粗出生率</a> · <a href="https://data.worldbank.org/indicator/SP.POP.TOTL">世界银行人口</a></p>
+<p>其他出生年份可选 1950–2100。地区名单取本作收录地区与当年可用联合国资料的交集。出生数、年中人口、预期寿命、性别比和儿童死亡率采用联合国经社部人口司《世界人口展望 2024》。1950–2023 为历史估计，2024 年起为中位方案推算。游戏按照所选出生年代建模，职业故事与家庭事件为独立编写的情境。<a href="https://population.un.org/wpp/">联合国世界人口展望</a> · <a href="https://creativecommons.org/licenses/by/3.0/igo/">CC BY 3.0 IGO</a></p>
+<h2 id="clock">时钟、健康与寿命</h2><p>选择 60 分钟时，1 倍速走一岁所需秒数约为 3600 除以出生地的出生预期寿命。30 和 90 分钟档按比例缩放。阅读暂停与决策等待时间另外计算。</p>
+<p>游戏用可以查到的婴儿、五岁以下以及成年存活指标约束抽样，并用出生预期寿命校准。现在模式优先使用分性别的 65 岁存活比例；其他年代使用可用的 60 岁指标。年龄段内部的风险、晚年变化和健康对个人的影响属于近似模拟。<a href="https://data.worldbank.org/indicator/SP.DYN.LE00.IN">出生预期寿命</a> · <a href="https://data.worldbank.org/indicator/SH.DYN.MORT">五岁以下死亡率</a> · <a href="https://data.worldbank.org/indicator/SP.DYN.TO65.FE.ZS">65 岁存活率示例</a></p>
+<h2>身份与地区</h2><p>现在模式在地区指标可用时依据当地的出生性别比和城镇人口占比抽取性别、城乡。城镇人口占比是游戏用于近似城乡出生分布的指标。其他年代缺少城乡指标时采用游戏抽样。中文姓名、本地候选名字和明确标注的故事小名用于生成虚构人物。成都、里昂有专属地景和事件，新局也会遇到与家人和朋友有关的共通经历。家庭收入五分位体现相对处境。<a href="https://data.worldbank.org/indicator/SP.URB.TOTL.IN.ZS">城镇人口比例</a> · <a href="https://data.worldbank.org/indicator/SP.POP.BRTH.MF">出生性别比</a> · <a href="https://www.worldbank.org/en/about/legal/terms-of-use-for-datasets">世界银行数据使用条款</a></p>
+<h2>家里的水和电</h2><p>出生登记中的数字是出生地城镇或乡村人口的服务覆盖率。游戏分别抽取家庭用电、基本饮水两项条件，展示不同出身的一种可能。两项指标没有提供每户的联合调查结果，也不区分收入层。用电覆盖率没有说明供电是否稳定。基本饮水服务指使用改良水源，往返取水连排队不超过 30 分钟。</p>
+<p>游戏收录 1990–2023 年的可用观测。2026 年的「现在」模式以 2023 年为基准，其他历史开局使用出生年资料，缺数最多往前找三年。资料不足的项目不作家庭推断，未来开局也不套用今天的覆盖率。<a href="https://data.worldbank.org/indicator/EG.ELC.ACCS.UR.ZS">城镇用电</a> · <a href="https://data.worldbank.org/indicator/EG.ELC.ACCS.RU.ZS">乡村用电</a> · <a href="https://data.worldbank.org/indicator/SH.H2O.BASW.UR.ZS">城镇基本饮水服务</a> · <a href="https://data.worldbank.org/indicator/SH.H2O.BASW.RU.ZS">乡村基本饮水服务</a> · <a href="https://washdata.org/monitoring/drinking-water">世界卫生组织与联合国儿童基金会的口径</a></p>
+<h2 id="stories">人物故事如何使用资料</h2><p>地方事件和选择旁的「背景资料」链接说明其中的学校、工作方式、公共服务或日常习俗。人物、对话、选项和后来的回忆均为虚构。剧本按出生地和经历筛选，一些场景还要求当事人住在乡村或从事相应的工作。「现在」模式沿用当代背景，历史模式按事发年检查有年代限制的制度，超过当前年份不预测其存续。成都、里昂另有城市专属场景。每国居民的职业、家庭、地方习俗和语言都有差异；游戏只描写一个人的一种可能经历。</p>
+<div id="storyReferences"></div>
+<h2 id="accounts">当地货币与家庭账本</h2>
+<p>财务卡上的收入和支出为上一年的生活结算。净资产包含钱包、储蓄、基金和住房。币名和三字母代码标在卡片上。遇到「旧账折算」时，原存档用点数记账。九个可玩国家按当地的模拟初职年薪折算，同时限制旧账中的基本年开销不超过当地人均家庭消费。其他有资料的旧出生地采用人均家庭消费基准。同一份旧账的收入、支出和资产按同一比例换算。缺少出生地或可靠基准的旧记录会标为「旧账点」。</p>
+<p>模型把当地参考年薪的 82% 作为初始成年收入基线，学徒基线取这个数的 53%。这两个比例用于模拟劳动阶段，并非当地法定税率或真实学徒工资标准。各项换算为本币后分别四舍五入，显示合计偶尔会相差一个单位。</p>
+<p>旧出生地的 2021 年人均消费优先采用家庭及服务家庭的非营利机构的消费支出总额除以人口，也使用国际比较项目或联合国国民账户补齐。经历过货币改制的地区按资料对应的币种列账，特殊情形可在「金额怎么算」里查看。<a href="https://data.worldbank.org/indicator/NE.CON.PRVT.CN">世界银行家庭消费支出</a> · <a href="https://unstats.un.org/unsd/snaama/Downloads">联合国国民账户</a></p>
+<p>新局使用当地币种。不同年份的金额统一按 2021 年基准购买力表示，便于比较一生的变化。各国食品、住房及公用事业、交通等消费分项的价格与预算参照世界银行国际比较项目。成都、里昂采用全国层面的基准。家庭处境、同住人数、通勤方式和职业会改变实际账单。住房估值和基金价格属于模拟。<a href="https://databank.worldbank.org/source/icp-2021/">世界银行 ICP 2021 数据库</a> · <a href="https://www.worldbank.org/en/programs/icp/data">统计方法与口径</a></p>
+<p>中国的工资基准取自城镇私营单位，法国取自私营部门全时当量税前工资。其余七国参照联合国收录的平均小时报酬，用每年 1,920 小时作为全时工作假设。印度、孟加拉国使用 2022 年调查，尼日利亚使用 2024 年调查，按本国消费价格指数折回 2021 年价格。职业、工时和学徒报酬再按角色经历调整。这些金额适合比较选择的后果，现实中的城市月租、到手工资和单件售价各有差别。<a href="https://www.stats.gov.cn/sj/zxfb/202302/t20230203_1901473.html">中国国家统计局</a> · <a href="https://www.insee.fr/fr/statistiques/7672130?sommaire=7656168">法国 INSEE</a> · <a href="https://unstats.un.org/sdgs/dataportal">联合国可持续发展指标 8.5.1</a> · <a href="https://data.worldbank.org/indicator/FP.CPI.TOTL">世界银行消费价格指数</a></p>
+<h2>资料处理</h2><p>世界银行 WDI 数据按经济体筛选，去除世界和跨国区域汇总项。联合国数据取国家和地区的中位方案，经舍入与字段筛选后收录在游戏中，可离线使用。已换算联合国以千人为单位的出生数和人口，游戏抽样仍受各地原始数据质量和模型假设影响。</p>
+<h2 id="history">历史年记</h2><p>历史模式中出现的世界纪事按实际发生月份记入年表，与个人的虚构经历分别展示。<a href="https://www.nasa.gov/mission/apollo-11/">阿波罗 11 号</a> · <a href="https://www.who.int/health-topics/smallpox">世界卫生组织天花史料</a> · <a href="https://www.nasa.gov/mission/expedition-1/">国际空间站首批长期乘组</a></p></main>
+<script src="./country-stories.js?v=20261127-curated"></script><script src="./stories-egypt.js"></script><script src="./stories-india-brazil.js"></script><script src="./stories-indonesia-nigeria.js"></script><script src="./stories-pakistan-bangladesh.js"></script>
+<script src="./stories-review-households.js"></script><script src="./stories-review-cities.js"></script><script src="./stories-review-africa-indonesia.js"></script>
+<script>
+const labels = {EGY:"埃及", IND:"印度", BRA:"巴西", IDN:"印度尼西亚", NGA:"尼日利亚", PAK:"巴基斯坦", BGD:"孟加拉国",CHN:"中国 · 成都",FRA:"法国 · 里昂"};
+for (const [iso, pack] of CountryStories.packs) {
+  const section=document.createElement("details"), summary=document.createElement("summary"), list=document.createElement("ul");
+  summary.textContent=labels[iso]+" · "+pack.sources.length+" 份资料";
+  for (const source of pack.sources) {
+    const li=document.createElement("li"), a=document.createElement("a");
+    a.href=source.url; a.textContent=source.label; li.append(a); list.append(li);
+  }
+  section.append(summary,list); document.getElementById("storyReferences").append(section);
+}
+</script></body></html>
