@@ -42,6 +42,7 @@
   let jumpedFrom = null;
   let setup = true;
   let lastRaw = null;
+  let pendingHistoryRaw = null;
   let damaged = false;
   let storageOK = true;
   let onConfirm = null;
@@ -103,9 +104,9 @@
   }
   function opening() {
     return '<section class="title-screen"><div class="title-frame">' +
-      '<img class="station-art" src="./assets/midnight-platform.webp" alt="" fetchpriority="high">' +
+      '<picture><source media="(max-width:760px)" srcset="./assets/midnight-platform-768.webp"><img class="station-art" src="./assets/midnight-platform.webp" alt="" fetchpriority="high"></picture>' +
       '<div class="station-shade" aria-hidden="true"></div><div class="title-copy">' +
-      '<p class="title-kicker"><i aria-hidden="true"></i>互动人生年鉴</p><h1>人生手记</h1>' +
+      '<p class="title-kicker"><i aria-hidden="true"></i>互动人生年鉴</p><h1>忽然而已</h1>' +
       '<p class="title-description">你将随机出生在九个国家之一。<br>每逢人生岔路，时间都会停下，等你选择。</p>' +
       '<div class="title-controls"><button type="button" class="primary birth-button" data-action="birth"><i class="dice-mark" aria-hidden="true"></i>随机出生</button>' +
       (state ? button("resume", "返回当前人生") : "") + '</div></div></div>' +
@@ -425,10 +426,10 @@
     dialog.showModal();
     (fn ? cancel : ok).focus();
   }
-  function recover(raw) {
+  function recover(envelope) {
     jumpedFrom = null;
     dirty = false;
-    if (raw === null) {
+    if (envelope === null) {
       state = null;
       previous = null;
       setup = true;
@@ -437,8 +438,7 @@
       moveId = null;
       return;
     }
-    const envelope = JSON.parse(raw);
-    if (envelope.version !== 1 || !api.valid(envelope.state)) throw new Error("Invalid save");
+    if (!api.valid(envelope.state)) throw new Error("Invalid save");
     state = envelope.state;
     moveId = envelope.moveId || null;
     clock = clockAPI.restore(envelope.clock, state);
@@ -452,10 +452,33 @@
     damaged = false;
   }
   function syncRaw(raw, otherTab) {
-    lastRaw = raw;
+    if (raw !== null && pendingHistoryRaw === raw) return;
+    pendingHistoryRaw = null;
     try {
-      if (raw && otherTab && moveId) {
-        const incoming = JSON.parse(raw);
+      const incoming = raw === null ? null : JSON.parse(raw);
+      if (raw !== null && (!incoming || incoming.version !== 1)) throw new Error("Invalid save");
+      if (window.LifeWorld.needsFullHistory(incoming?.state)) {
+        pendingHistoryRaw = raw;
+        message("正在读取这段人生的出生年代资料…");
+        window.LifeWorld.loadFullHistory().then(() => {
+          if (pendingHistoryRaw !== raw) return;
+          pendingHistoryRaw = null;
+          message("");
+          syncRaw(raw, otherTab);
+        }, () => {
+          if (pendingHistoryRaw !== raw) return;
+          message("出生年代资料未能载入，存档已保留。");
+          const retry = document.createElement("button");
+          retry.type = "button";
+          retry.className = "text-btn";
+          retry.textContent = "重新读取";
+          retry.onclick = () => { pendingHistoryRaw = null; syncRaw(raw, otherTab); };
+          notice.append(" ", retry);
+        });
+        return;
+      }
+      lastRaw = raw;
+      if (incoming && otherTab && moveId) {
         if (incoming.moveId === moveId && incoming.clock && state) {
           const next = clockAPI.restore(incoming.clock, state);
           const prefsChanged = ["started","speed","minutes","paused","reportRead"].some(k => next[k] !== clock[k]) ||
@@ -466,9 +489,10 @@
           return;
         }
       }
-      recover(raw);
+      recover(incoming);
       if (otherTab) message("已同步另一窗口中的人生进度。");
     } catch {
+      lastRaw = raw;
       state = null;
       previous = null;
       setup = true;
@@ -614,7 +638,7 @@
     const url = URL.createObjectURL(new Blob([lastRaw], { type: "application/json" }));
     const a = document.createElement("a");
     a.href = url;
-    a.download = "人生手记-存档备份.json";
+    a.download = "忽然而已-存档备份.json";
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1500);
   }

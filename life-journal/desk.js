@@ -297,7 +297,7 @@
       const x=385+hash(s,3100+i)%535,y=14+hash(s,3200+i)%149;
       if(i%11===0)star(x,y,'#a598ac');else box(x,y,2,2,'#675d7b');
     }
-    star(51,55,'#efbc82');label('人生手记',72,63,'bold 25px sans-serif','#ffe1a5',200);
+    star(51,55,'#efbc82');label('忽然而已',72,63,'bold 25px sans-serif','#ffe1a5',200);
     label('人生纪念卡',739,62,'24px sans-serif','#c2b4c8',172);
     label(s.name,44,139,'bold 59px serif','#fff1d7',859);
     label([place?.label||place?.country||s.region,s.birthYear+' — '+lastYear(s),endAge(s)].join('　·　'),
@@ -323,12 +323,12 @@
       paragraph(moneyText(s,m.text),183,y+39,713);
     });
     box(48,1044,864,1,'#5b4c62');
-    label('人生手记　·　'+(place?.country||s.region),48,1080,'20px sans-serif','#b5a6b7',645);
+    label('忽然而已　·　'+(place?.country||s.region),48,1080,'20px sans-serif','#b5a6b7',645);
     star(904,1070,'#dba778');
     canvas.toBlob(blob=>{
       if(!blob)return;
       const url=URL.createObjectURL(blob),a=document.createElement('a');
-      a.href=url;a.download='人生手记-'+s.name+'.png';a.click();
+      a.href=url;a.download='忽然而已-'+s.name+'.png';a.click();
       setTimeout(()=>URL.revokeObjectURL(url),1500);
     },'image/png');
   }

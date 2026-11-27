@@ -50,15 +50,43 @@
   const list=[...new Set(places.values())];
   const playable = new Set(["CHN","FRA","EGY","IND","IDN","NGA","BRA","PAK","BGD"]);
   const playableList = list.filter(p => playable.has(p.iso));
-  const history=globalThis.WorldCohorts||{};
-  const years=Object.keys(history).length?Array.from({length:151},(_,i)=>1950+i):[2026];
+  const years=Object.keys(globalThis.WorldCohorts||{}).length?Array.from({length:151},(_,i)=>1950+i):[2026];
   const yearCache=new Map();
+  let fullHistoryRequest;
+  let fullHistoryLoaded=false;
+  function needsFullHistory(state) {
+    const iso=places.get(state?.region)?.iso;
+    return Boolean(iso && !fullHistoryLoaded && state.birthYear!==2026 &&
+      years.includes(state.birthYear) && !Object.hasOwn(globalThis.WorldCohorts,iso));
+  }
+  function loadFullHistory() {
+    if (fullHistoryRequest) return fullHistoryRequest;
+    fullHistoryRequest=new Promise((resolve,reject)=>{
+      const script=document.createElement('script');
+      const previous=globalThis.WorldCohorts;
+      function failed() {
+        script.remove();
+        fullHistoryRequest=null;
+        reject(new Error('出生年代资料未能载入'));
+      }
+      script.src='./world-cohorts.js';
+      script.onload=()=>{
+        if (globalThis.WorldCohorts===previous) return failed();
+        fullHistoryLoaded=true;
+        yearCache.clear();
+        resolve();
+      };
+      script.onerror=failed;
+      document.head.append(script);
+    });
+    return fullHistoryRequest;
+  }
   function cohort(year){
     if(!Number.isInteger(year)||year===2026||!years.includes(year))return null;
     if(yearCache.has(year))return yearCache.get(year);
     const indexed=new Map();
     for(const base of list){
-      const line=history[base.iso]?.[year-1950];
+      const line=globalThis.WorldCohorts[base.iso]?.[year-1950];
       if(!line||!(line[0]>0)||!(line[1]>0)||!(line[2]>0))continue;
       const [pop,born,lifeExp,imr,under5,sexRatio,q60]=line;
       const row={...base,population:pop,births:born,birthRate:born/pop*1000,lifeExp,infantMortality:imr,under5,
@@ -122,6 +150,6 @@
       return offset>=0&&offset<12?[{at:(offset+0.5)/12,kind:'world',title:'世界纪事 · '+title,text}]:[];
     });
   }
-  globalThis.LifeWorld=Object.freeze({sample,place,list,playableList,personalName,storySetting,hash,years,worldScenes,dataYear:2023});
+  globalThis.LifeWorld=Object.freeze({sample,place,list,playableList,personalName,storySetting,hash,years,worldScenes,needsFullHistory,loadFullHistory,dataYear:2023});
 })();
 
