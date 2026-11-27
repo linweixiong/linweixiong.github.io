@@ -354,11 +354,11 @@
         if(option==="corner-pieces")for(let i=0;i<4;i++){const x=228+26*i*p,y=240-i%2*16*p;
           polygon([[x-9,y-3],[x+10,y-6],[x+12,y-23]],"#e4c79e");line(x-8,y-4,x+10,y-17,"#a88362");}
       }else if(craft==="radio"){
-        const x=212,y=183;shade(x+38,y+58,49);box(x,y,88,55,"#573e3b");box(x+3,y+3,82,49,"#ae7952");box(x+7,y+8,44,34,"#554548");
+        const x=365,y=183,paperX=193;shade(x+38,y+58,49);box(x,y,88,55,"#573e3b");box(x+3,y+3,82,49,"#ae7952");box(x+7,y+8,44,34,"#554548");
         for(let i=0;i<6;i++)for(let j=0;j<5;j++)box(x+10+i*6,y+11+j*6,3,2,"#97795c");
         box(x+55,y+8,26,8,"#e1c19a");box(x+65,y+8,2,8,"#a15d49");for(const n of [61,76]){ellipse(x+n,y+32,7,7,"#483e43");ellipse(x+n-1,y+30,4,4,"#a6937a");}
-        line(x+11,y-1,x+43,y-42,"#c3b7a2",2);sheet(365,243,88,38);
-        if(option==="map"){for(let n=0;n<4;n++){const a=limit(p*4-n);if(a)line(337+n*13,231-n%2*12,337+n*13+13*a,231-n%2*12+(n%2?12:-12)*a,"#677c80",2);}}
+        line(x+11,y-1,x+43,y-42,"#c3b7a2",2);sheet(paperX,243,88,38);
+        if(option==="map"){for(let n=0;n<4;n++){const a=limit(p*4-n);if(a)line(paperX-28+n*13,231-n%2*12,paperX-28+n*13+13*a,231-n%2*12+(n%2?12:-12)*a,"#677c80",2);}}
         if(option==="voices"&&p)for(let n=0;n<3;n++){const xx=x+74+n*9;line(xx,176-n*6,xx+4,170-n*7,"#e4c89a",2);}
       }else if(craft==="bamboo"){
         bamboo(213,246,option==="play-part"?Math.sin(t*8)*5+p*6:0);
