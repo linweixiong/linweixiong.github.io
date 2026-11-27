@@ -26,9 +26,10 @@
   const ok = document.getElementById("dialogOk");
   const api = window.Life;
   const clockAPI = window.AnnualClock;
-  if (!api || !clockAPI) {
+  const stage = window.LifeStageView;
+  if (!api || !clockAPI || !stage) {
     notice.hidden = false;
-    notice.textContent = "人生引擎或时钟未能载入，请检查游戏文件是否完整，然后刷新。";
+    notice.textContent = "人生引擎、时钟或互动舞台未能载入，请刷新页面；离线游玩时请检查游戏文件是否完整。";
     return;
   }
   let clock = clockAPI.restore(null);
@@ -43,6 +44,8 @@
   let scenes = [];
   let feedIndex = -1;
   let barObserver;
+  let stageController = null;
+  let stageReceipt = null;
   const reflectionAges = [5, 15, 30, 50, 70];
   let state = null;
   let previous = null;
@@ -171,9 +174,15 @@
   }
   function timeline(s) {
     const items = [...window.LifeKeepsakes.visibleLog(s)].reverse();
+    const indices=new Map(s.log.map((e,i)=>[e,i]));
     return '<details class="journal"><summary>人生历程（' + items.length + '）</summary><ol class="timeline">' +
       items.map(e => '<li><span class="age">' + (e.kind === "ending" ? safe(ageLabel(s)) : safe(e.age) + '岁') + '</span><div><strong>' +
-        safe(e.title) + '</strong><p>' + narrative(s,e.text) + '</p>' + sourceNote(e.sourceKey) + '</div></li>').join("") + '</ol></details>';
+        safe(e.title) + '</strong><p>' + narrative(s,e.text) + '</p>' + replayButton(s,e,indices.get(e)) + sourceNote(e.sourceKey) + '</div></li>').join("") + '</ol></details>';
+  }
+  function replayButton(s,e,index,label="重看这一幕") {
+    if(!e || !["echo","choice","milestone","ending","event","birth","report"].includes(e.kind))return "";
+    const i=index??s.log.indexOf(e);
+    return i<0?"":'<button type="button" class="text-btn stage-replay" data-action="replay" data-index="'+i+'">'+safe(label)+'</button>';
   }
   function passage(s) {
     if (jumpedFrom === null) return "";
@@ -183,19 +192,22 @@
     const notes = [...new Set([personal[0],personal.at(-1),lastOf("echo"),lastOf("event")].filter(Boolean))]
       .sort((a,b)=>items.indexOf(a)-items.indexOf(b));
     if (!notes.length) return "";
-    return '<section class="passage"><h3>翻过的几页</h3><ul>' +
+    const highlight=lastOf("echo")||personal.at(-1);
+    return (highlight?'<div class="stage-recent">'+replayButton(s,highlight,null,"回看 · "+highlight.age+"岁「"+highlight.title+"」")+'</div>':'')+
+      '<details class="passage"><summary>翻过的几页（'+notes.length+'）</summary><ul>' +
       notes.map(e => '<li><b>' + safe(e.age) + '岁 · ' + safe(e.title) + '</b><p>' +
-        narrative(s,e.text) + '</p></li>').join("") + '</ul></section>';
+        narrative(s,e.text) + '</p>'+replayButton(s,e)+'</li>').join("") + '</ul></details>';
   }
   function decision(s) {
     const p = s.pending;
     const d = visibleDate(s,clock.fraction);
     return '<section class="decision"><div class="decision-heading"><span class="meta">' +
       (p.type === "reflection" ? "人生反思" : "人生抉择") + ' · 时间已暂停</span><span>' + s.age + '岁 · ' + d.year + '年' + d.month + '月</span></div><h2 id="stepHeading" tabindex="-1">' +
-      safe(p.title) + '</h2><p>' + narrative(s,p.text) + '</p><div class="decision-options">' +
-      p.options.map(o => '<button type="button" data-action="choose" data-id="' + safe(o.id) +
-        '" data-pending="' + safe(p.id) + '"' + (o.disabled ? ' disabled' : '') + '><strong>' + safe(o.label) + '</strong><small>' +
-        narrative(s,o.note) + '</small></button>').join("") + '</div>' + sourceNote(p.sourceKey) + passage(s) + '</section>';
+      safe(p.title) + '</h2><div class="decision-options">' +
+      p.options.map((o,i) => '<button type="button" data-action="choose" data-id="' + safe(o.id) +
+        '" data-pending="' + safe(p.id) + '"' + (o.disabled ? ' disabled' : '') + '><strong>' + narrative(s,o.label) + '</strong><small id="option-note-'+i+'">' +
+        narrative(s,o.note) + '</small></button>').join("") + '</div><details class="stage-original"><summary>完整情境与出处</summary><p>'+
+      narrative(s,p.text)+'</p>'+sourceNote(p.sourceKey)+'</details>'+passage(s)+'</section>';
   }
   function ledger(s,r) {
     const labels=['收入','实付','助学','年末余额'];
@@ -235,7 +247,8 @@
       extra.some(e => e.age === m.age && e.title === m.title)));
     function moment(m) {
       const age=m === events.at(-1) && !m.threadKey ? ageLabel(s) : m.age===0 ? "出生那年" : m.age+"岁";
-      return '<li><b>'+safe(age)+'</b>　<strong>'+safe(m.title)+'</strong><p>'+narrative(s,m.text)+'</p></li>';
+      const record=s.log.find(e=>e.age===m.age&&e.title===m.title&&e.text===m.text);
+      return '<li><b>'+safe(age)+'</b>　<strong>'+safe(m.title)+'</strong><p>'+narrative(s,m.text)+'</p>'+replayButton(s,record)+'</li>';
     }
     const personal=pages.length?'<section class="keepsake-pages"><h3>留下来的几页</h3>'+
       pages.map((page,i)=>'<details'+(i===0?' open':'')+'><summary>'+safe(page.name)+'</summary><ol class="memories">'+
@@ -262,22 +275,24 @@
   }
   function registration(s) {
     const r = place(s.region,s.birthYear);
-    return '<div class="registration"><section class="story birth-card"><p class="eyebrow">出生登记 · ' +
-      safe(s.birthYear) + '年</p><h1 tabindex="-1" id="stepHeading" aria-describedby="birthFacts">' + safe(s.name) +
-      '</h1><dl class="birth-facts" id="birthFacts">' + birthFields(s) +
-      (Number.isFinite(s.origin?.lifeExp) ? field("地区预期寿命基准", number(s.origin.lifeExp) + "岁") : "") +
-      '</dl><p class="birth-story">' + narrative(s,s.log[0]?.text) +
-      '</p>' + homeContext(s) + (s.version === 2 ? '<p class="era-note">人口资料依据：' + dataLabel(s.birthYear) + '</p>' : '') +
-      '<div class="story-actions">' + durationSelect() + button("start", "开始这一生", "primary") +
-      '</div></section><figure class="registration-scene"><canvas id="lifeScene" width="320" height="104" role="img" aria-label="出生时的居住环境"></canvas><figcaption>' +
-      safe(locationName(r))+' · '+(s.residence==="urban"?"街区":s.residence==="rural"?"乡间":"居住地")+'夜景</figcaption></figure>' +
-      '</div>' + button("restart","重新开局","text-btn");
+    const wealth=["","最紧张","较紧张","居中","较宽裕","最宽裕"][s.quintile]||FAMILIES[s.family];
+    const where=[locationName(r),window.LifeWorld?.storySetting(s)?.label].filter(Boolean).join(" · ");
+    return '<div class="registration stage-birth"><div class="birth-stage-head"><p class="eyebrow">出生登记 · '+
+      safe(s.birthYear)+'年'+(s.month?s.month+'月':'')+'</p><h1 id="stepHeading" tabindex="-1">'+safe(s.name)+'</h1>'+
+      '<p>'+safe(where)+' · 家境'+safe(wealth)+'</p></div><div class="stage-layout">'+stage.frame()+
+      '<section class="birth-card story stage-side"><h2>来到这个世界</h2><p class="stage-direction">碰一碰画里的玩具小鸟或小铃，也可以直接出发。</p>'+
+      '<div class="story-actions">'+button("start","开始这一生","primary")+durationSelect()+'</div>'+
+      '<details class="stage-original"><summary>完整出生登记与故事</summary><dl class="birth-facts" id="birthFacts">'+birthFields(s)+
+      (Number.isFinite(s.origin?.lifeExp)?field("地区预期寿命基准",number(s.origin.lifeExp)+"岁"):"")+'</dl><p class="birth-story">'+
+      narrative(s,s.log[0]?.text)+'</p>'+(s.version===2?'<p class="era-note">人口资料依据：'+dataLabel(s.birthYear)+'</p>':'')+'</details>'+
+      homeContext(s)+'</section></div></div>'+button("restart","重新开局","text-btn");
   }
   function clockReason() {
     if (state.ended) return "人生已结束";
     if (state.pending) return state.pending.type === "reflection" ? "等待你的反思" : "等待抉择";
     if (state.age === 19 && state.report && !clock.reportRead) return "等待读完账本";
     if (needsReflection(state)) return "等你写下反思";
+    if (stageController?.reviewing) return "回看中 · 计时暂停";
     if (writingNote()) return "书写中 · 计时暂停";
     return clock.paused ? "已暂停" : "时间流动中";
   }
@@ -291,23 +306,25 @@
   function needsReflection(s) {
     return reflectionAges.includes(s.age) && !clock.reflections.includes(s.age) && !s.ended && !s.pending;
   }
-  function reflection(s) {
+  function reflectionQuestion(s) {
     const last = (s.log || []).filter(e => e.kind === "choice" && e.sourceKey && e.age > s.age - 21).at(-1);
-    const question = last ? '你在'+last.age+'岁时选了「'+last.title+'」。当时你想给谁留一点余地？今天再选，会有什么不同？' :
+    return last ? '你在'+last.age+'岁时选了「'+last.title+'」。当时你想给谁留一点余地？今天再选，会有什么不同？' :
       '回看这些年的经历，哪一件事最想记住？';
+  }
+  function reflection(s) {
     return '<section class="decision reflection"><p class="meta">人生反思 · 时间已暂停</p><h2 id="stepHeading" tabindex="-1">' +
-      safe(s.age) + '岁，停笔片刻</h2><label for="reflectionNote">'+safe(question)+'</label>' +
+      safe(s.age) + '岁，停笔片刻</h2><label for="reflectionNote">'+safe(reflectionQuestion(s))+'</label>' +
       '<textarea id="reflectionNote" rows="3" maxlength="1200"></textarea><div class="story-actions">' +
       button("note", "写进手记", "primary") + button("skipReflection", "跳过反思") + '</div></section>';
   }
   function clockBar(s) {
     const controls = s.ended ? "" : '<div class="time-controls">' +
       button("pause", clock.paused ? "继续" : "暂停","secondary pause-control") +
-      '<div class="speeds" role="group" aria-label="时间倍速">' + clockAPI.speeds.map(n =>
-        '<button type="button" data-action="speed" data-rate="' + n + '" aria-pressed="' +
-        (clock.speed === n) + '">' + n + '×</button>').join("") + '</div>' + durationSelect() +
       (!s.pending && !needsReflection(s) && !(s.age === 19 && s.report && !clock.reportRead) ?
-        button("next","快进到下个抉择","text-btn") : "") + '</div>';
+        button("next","快进到下个抉择","secondary") : "") +
+      '<details class="stage-clock-options"><summary>时间设置 · '+clock.speed+'×</summary><div><div class="speeds" role="group" aria-label="时间倍速">' + clockAPI.speeds.map(n =>
+        '<button type="button" data-action="speed" data-rate="' + n + '" aria-pressed="' +
+        (clock.speed === n) + '">' + n + '×</button>').join("") + '</div>' + durationSelect() + '</div></details></div>';
     return '<section class="clock-panel" aria-label="人生时钟"><div class="clock-heading"><div><p class="eyebrow">' +
       safe(place(s.region,s.birthYear).name) + ' · ' + safe(s.stage) + '</p><h1>' +
       (s.ended ? safe(ageLabel(s)) : safe(s.age) + '<small> 岁</small>') + '<span>' +
@@ -337,7 +354,25 @@
     const recent = window.LifeKeepsakes.visibleLog(s).filter(e => e.kind !== "decision").slice(-7).concat(visible.map(e => ({...e,age:s.age}))).reverse().slice(0,7);
     return '<ol class="live-records">' + recent.map(e => '<li><span>' + (e.kind === "ending" ? safe(ageLabel(s)) : safe(e.age) + '岁') +
       (Number.isFinite(e.at) ? ' · ' + calendar(s,e.age,e.at).month + '月' : '') +
-      '</span><div><strong>' + safe(e.title) + '</strong><p>' + narrative(s,e.text) + '</p>' + sourceNote(e.sourceKey) + '</div></li>').join("") + '</ol>';
+      '</span><div><strong>' + safe(e.title) + '</strong><p>' + narrative(s,e.text) + '</p>' + replayButton(s,e) + sourceNote(e.sourceKey) + '</div></li>').join("") + '</ol>';
+  }
+  function stageModel(s) {
+    const model=stage.describe(s,{fraction:clock.fraction});
+    if(s.ended) return {...model,items:[{id:"__album",motif:"book",label:"翻开人生手记"}]};
+    if(s.pending || !clock.started)return model;
+    if(s.age===19 && s.report && !clock.reportRead)return {...model,kind:"table",mode:"scene",eventTitle:"三年后的账本",
+      caption:"十六岁以来的三年收支都记在账上。",detail:s.report.opportunity,items:[{id:"__ledger",motif:"coin",label:"翻开账本"}]};
+    if(needsReflection(s))return {...model,kind:"memory",mode:"scene",eventTitle:s.age+"岁的反思",
+      caption:"你可以在手记里留下一句话。",detail:reflectionQuestion(s),items:[{id:"__note",motif:"pencil",label:"拿起笔"}]};
+    return model;
+  }
+  function stageAction(id) {
+    const target=id==="__note"?document.getElementById("reflectionNote"):
+      id==="__album"||id==="__ledger"?document.getElementById("stepHeading"):null;
+    if(!target)return false;
+    target.focus({preventScroll:true});
+    target.scrollIntoView({block:"center"});
+    return true;
   }
   function life(s) {
     const legacy = s.version === 1 ? '<aside class="legacy-banner"><div><strong>这是一份旧版人生</strong>' +
@@ -345,16 +380,25 @@
       button("newVersion", "从0岁体验新版", "primary") + '</aside>' : "";
     if (!clock.started && !s.ended) return legacy + registration(s);
     const reportNow = s.age === 19 && s.report && !clock.reportRead;
-    const priority = s.ended ? recall(s) : s.pending ? decision(s) : reportNow ? report(s) : needsReflection(s) ? reflection(s) : "";
+    const isReflecting=needsReflection(s);
+    const daily=!s.ended&&!s.pending&&!reportNow&&!isReflecting;
+    const lastEcho=window.LifeKeepsakes.visibleLog(s).findLast(e=>e.kind==="echo");
+    const rail = s.ended ? '<section class="stage-side stage-moment"><p class="meta">告别</p><h2>'+safe(s.name)+'的一生</h2><p>'+safe(ageLabel(s))+' · '+visibleDate(s,0).year+'年</p><a class="stage-link" href="#stepHeading">翻看这一生</a></section>' :
+      s.pending ? decision(s) :
+      reportNow ? '<section class="stage-side stage-moment"><p class="meta">19岁 · 时间已暂停</p><h2>三年后的账本</h2><p>从十六岁的选择走到今天，看看你的收支与机会。</p><a class="stage-link" href="#stepHeading">打开账本</a></section>' :
+      isReflecting ? reflection(s) :
+      '<div class="stage-side stage-daily">'+focusBox(s)+(lastEcho ? '<section class="stage-echo"><p class="meta">最近的回响</p><h2>'+safe(lastEcho.title)+'</h2>'+replayButton(s,lastEcho)+'</section>' : '')+
+      vitals(s)+'</div>';
     const archive = s.report && !reportNow ? report(s) : "";
     const nav = !s.ended ? '<div class="journal-links">' +
       (s.canRewind && !s.report ? button("rewind","回到16岁重选","text-btn") : "") +
       button("restart","重新开局","text-btn") + '</div>' : "";
-    return legacy + clockBar(s) + '<nav class="mobile-tabs" aria-label="人生面板">' +
-      '<a href="' + (priority ? '#stepHeading' : '#reading') + '">今年的生活</a><a href="#identity">身份档案</a><a href="#lifeDesk">家人与手记</a></nav>' +
-      '<div class="dashboard' + (priority ? ' has-decision' : '') + '"><div class="vitals-slot">' + vitals(s) + window.LifeDesk.balanceCard(s) + '</div>' +
-      '<div class="identity-slot" id="identity">' + profile(s) + '</div><div class="reading" id="reading">' + priority +
-      '<canvas id="lifeScene" width="320" height="104" role="img" aria-label="这一年居住的环境"></canvas>' + focusBox(s) +
+    return legacy + clockBar(s) + '<div class="stage-layout stage-live">'+stage.frame()+rail+'</div>'+
+      (s.ended || reportNow ? '<div class="stage-document">'+(s.ended?recall(s):report(s))+'</div>' : '')+
+      '<nav class="stage-tabs" aria-label="人生面板"><a href="#reading">人生记录</a><a href="#identity">身份档案</a><a href="#lifeDesk">家人与手记</a></nav>'+
+      '<div class="dashboard"><div class="vitals-slot">' + (daily?"":vitals(s)) + window.LifeDesk.balanceCard(s) + '</div>' +
+      '<div class="identity-slot" id="identity">' + profile(s) + '</div><div class="reading" id="reading">' +
+      (s.pending || s.ended || reportNow || isReflecting ? focusBox(s) : "") +
       '<section class="pane feed"><h2>人生记录</h2><div id="yearFeed">' + yearFeed(s) + '</div></section>' +
       archive + timeline(s) + nav + '</div><div id="lifeDesk"></div></div>';
   }
@@ -371,8 +415,10 @@
     document.getElementById("miniClock").textContent = ageLabel(state) + " · " + date.year + "年" + date.month + "月 · " + percent +
       (statusText === "时间流动中" ? "" : " · " + statusText);
     document.getElementById("clockState").textContent = clockReason();
-    if (scenes.filter(e => e.at <= clock.fraction).length !== feedIndex)
+    if (scenes.filter(e => e.at <= clock.fraction).length !== feedIndex) {
       document.getElementById("yearFeed").innerHTML = yearFeed(state);
+      stageController?.update(stageModel(state));
+    }
   }
   function render(focus = false) {
     const key = !setup && state ? [state.version,state.seed,state.region,state.family,state.birthYear].join("/") : "";
@@ -384,6 +430,9 @@
           start:node.selectionStart, end:node.selectionEnd});
       }
     }
+    const clockSettingsOpen=main.querySelector(".stage-clock-options")?.open;
+    stageController?.destroy();
+    stageController=null;
     main.dataset.life = key;
     scenes = state && clock.started && !state.ended ? api.yearScenes?.(state) || [] : [];
     main.innerHTML = setup || !state ? opening() : life(state);
@@ -405,8 +454,13 @@
     const desk = document.getElementById("lifeDesk");
     if (desk) window.LifeDesk?.mount(desk, state, {buy: id => operate(s => api.buy(s, id)),date:visibleDate(state,clock.fraction)});
     else window.LifeDesk?.closeFinance?.();
-    const canvas = document.getElementById("lifeScene");
-    if (canvas) window.LifeDesk?.drawMapScene?.(canvas, state,window.LifeKeepsakes.livedYears(state));
+    const timeSettings=main.querySelector(".stage-clock-options");
+    if (timeSettings && clockSettingsOpen) timeSettings.open=true;
+    const stageEl=main.querySelector(".stage-frame");
+    if (stageReceipt && (stageReceipt.after!==state || !stageEl || stageReceipt.done ||
+        !stageReceipt.held && stageReceipt.until && performance.now()>=stageReceipt.until)) stageReceipt=null;
+    if(stageReceipt && !stageReceipt.until) stageReceipt.until=performance.now()+1450;
+    if (stageEl) stageController=stage.mount(stageEl,{state,model:stageModel(state),paused:clock.started&&clock.paused,onChoice:commitChoice,onAction:stageAction,onReview:paint,receipt:stageReceipt});
     for (const draft of drafts) {
       const node = main.querySelector(draft.selector);
       if (!node) continue;
@@ -488,11 +542,12 @@
       if (incoming && otherTab && moveId) {
         if (incoming.moveId === moveId && incoming.clock && state) {
           const next = clockAPI.restore(incoming.clock, state);
-          const prefsChanged = ["started","speed","minutes","paused","reportRead"].some(k => next[k] !== clock[k]) ||
+          const pageChanged = ["started","reportRead"].some(k => next[k] !== clock[k]) ||
             String(clock.reflections) !== String(next.reflections);
+          const tuningChanged = ["paused","speed","minutes"].some(k => next[k] !== clock[k]);
           clock = next;
           dirty = false;
-          if (prefsChanged) render(); else paint();
+          if (pageChanged) render(); else if(tuningChanged) paintClockSettings(); else paint();
           return;
         }
       }
@@ -565,7 +620,37 @@
   }
   function setClock(patch, focus = false) {
     if (!state) return;
+    if(Object.keys(patch).every(key=>["speed","minutes","paused"].includes(key))){
+      if(save(state,previous,jumpedFrom,{...clock,...patch},{clockOnly:true,tick:true})) paintClockSettings();
+      return;
+    }
     save(state, previous, jumpedFrom, {...clock, ...patch}, {clockOnly:true, focus});
+  }
+  function paintClockSettings() {
+    const duration=main.querySelector("#duration");
+    if(duration)duration.value=String(clock.minutes);
+    const pause=main.querySelector(".pause-control");
+    if(pause)pause.textContent=clock.paused?"继续":"暂停";
+    const settings=main.querySelector(".stage-clock-options summary");
+    if(settings)settings.textContent="时间设置 · "+clock.speed+"×";
+    for(const rate of main.querySelectorAll("button[data-rate]"))rate.setAttribute("aria-pressed",Number(rate.dataset.rate)===clock.speed);
+    const pace=main.querySelector(".clock-pace");
+    if(pace)pace.textContent="1× 时每年约 "+Math.round(yearSeconds(state))+" 秒";
+    stageController?.setPaused(clock.started&&clock.paused);
+    status();
+    paint();
+  }
+  function commitChoice(id,pendingId) {
+    if (!state || setup || state.ended || state.pending?.id!==pendingId ||
+        !state.pending.options.some(o=>o.id===id&&!o.disabled)) return;
+    const before=state,model=stageModel(before);
+    const saved=operate(draft=>{
+      const next=api.choose(draft,id);
+      const event=next.log.slice(before.log.length).findLast(e=>e.kind==="choice");
+      if(event) stageReceipt={state:before,model,id,event,after:next,result:stage.describe(next,{event}),until:0};
+      return next;
+    },previous,null,{},true);
+    if(!saved)stageReceipt=null;
   }
   function flush() {
     if (dirty && state && !setup) save(state, previous, jumpedFrom, clock, {clockOnly:true, tick:true});
@@ -575,7 +660,7 @@
   }
   function pulse(dt) {
     if (setup || !state || !clock.started || state.ended || writingNote() || dialog.open || document.querySelector("dialog[open]")) return;
-    if (clock.paused || state.pending || needsReflection(state)) return;
+    if (clock.paused || state.pending || needsReflection(state) || stageController?.reviewing) return;
     if (state.age === 19 && state.report && !clock.reportRead) return;
     const duration = yearSeconds(state) * 1000;
     const fraction = clock.fraction + dt * clock.speed / duration;
@@ -681,7 +766,7 @@
     if (!control) return;
     const action = control.dataset.action;
     if (action === "help") {
-      alertDialog("怎样度过这一生", "「按出生人数」让新生儿更多的地区更常出现，「按在世人口」则按地区人口抽取。各地收录的生活故事详略不同。\n\n登记后按「开始这一生」。游戏按出生地的预期寿命和你选的时长计算每年的秒数。可以暂停、改倍速或调整年度重心。离开标签页时不会累积游戏时间。\n\n遇到人生抉择时，时间会停下来等你亲自选择，快进也会在这里停下。遇到反思时，你可以写一笔或跳过。十九岁时，读完三年账本再继续。", "知道了");
+      alertDialog("怎样度过这一生", "你将从十二个国家随机出生。「按出生人数」让新生儿更多的地区更常出现，也可以按在世人口抽取。\n\n出生时可以逗逗小鸟、碰一下铃。按「开始这一生」后，时钟按当地预期寿命和你选的时长前进。展开「时间设置」可改倍速，离开标签页会暂停计时。\n\n遇到抉择，点画里的道具或文字选项，就会作出同一个决定。原文和背景资料可展开阅读。反思时可写一笔或跳过，十九岁时可以核对收支。在人生记录里点「重看这一幕」，可回到已经历的场景。", "知道了");
     } else if (action === "finance" && state && !setup) {
       window.LifeDesk?.openFinance(state, visibleDate(state,clock.fraction));
     } else if (action === "timeTop") {
@@ -703,6 +788,14 @@
       render(true);
     } else if (action === "rewind") {
       rewind();
+    } else if (action === "replay" && state && !setup) {
+      const event=state.log[Number(control.dataset.index)];
+      if (event && stageController) {
+        stageController.preview(stage.describe(state,{event}),event.kind==="ending"?window.LifeKeepsakes.livedYears(state):event.age);
+        const frame=main.querySelector(".stage-frame");
+        frame.focus({preventScroll:true});
+        frame.scrollIntoView({block:"start"});
+      }
     } else if (state && !setup && !state.ended) {
       if (action === "start" && !clock.started) setClock({started:true, paused:false}, true);
       else if (action === "pause") setClock({paused:!clock.paused});
@@ -716,9 +809,8 @@
         const written = window.LifeDesk.writeNote(state, note.value.trim());
         finishReflection();
         if (!written) message("这一条反思已记在当前窗口。浏览器暂时无法把它保存到本机。");
-      } else if (action === "choose" && state.pending?.id === control.dataset.pending &&
-          state.pending.options.some(o => o.id === control.dataset.id && !o.disabled)) {
-        operate(s => api.choose(s, control.dataset.id), previous, null, {}, true);
+      } else if (action === "choose") {
+        commitChoice(control.dataset.id,control.dataset.pending);
       } else if (action === "next" && !state.pending && !needsReflection(state) && !(state.age === 19 && !clock.reportRead && state.report)) {
         operate(skipForward, previous, state.age, {}, true);
       }
