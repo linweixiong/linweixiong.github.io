@@ -48,8 +48,14 @@
     places.set(region,row);if(region!==iso)places.set(iso,row);
   }
   const list=[...new Set(places.values())];
-  const playable = new Set(["CHN","FRA","EGY","IND","IDN","NGA","BRA","PAK","BGD"]);
-  const playableList = list.filter(p => playable.has(p.iso));
+  const original = new Set(["CHN","FRA","EGY","IND","IDN","NGA","BRA","PAK","BGD"]);
+  const newSettings = {
+    JPN:{id:"saitama",label:"埼玉县"},
+    DEU:{id:"nrw",label:"北莱茵-威斯特法伦州"},
+    MEX:{id:"puebla",label:"普埃布拉州"}
+  };
+  const originalList = list.filter(p => original.has(p.iso));
+  const playableList = list.filter(p => original.has(p.iso) || Object.hasOwn(newSettings,p.iso));
   const years=Object.keys(globalThis.WorldCohorts||{}).length?Array.from({length:151},(_,i)=>1950+i):[2026];
   const yearCache=new Map();
   let fullHistoryRequest;
@@ -103,10 +109,11 @@
     x=Math.imul(x^(x>>>15),0x846ca68b);
     return (x^(x>>>16))>>>0;
   }
-  function sample(seed,mode='newborn',year=2026) {
+  function sample(seed,mode='newborn',year=2026,countrySetVersion=2) {
     const byPop=mode==='population';
     const epoch=cohort(year);
-    const pool=epoch ? playableList.map(p=>epoch.indexed.get(p.iso)).filter(Boolean) : playableList;
+    const countries=countrySetVersion===1 ? originalList : playableList;
+    const pool=epoch ? countries.map(p=>epoch.indexed.get(p.iso)).filter(Boolean) : countries;
     const weight=p=>byPop?p.population:(p.births??p.population*p.birthRate/1000);
     let target=hash(seed,73)/4294967296*pool.reduce((sum,p)=>sum+weight(p),0);
     for(const p of pool){
@@ -116,7 +123,9 @@
     return pool[pool.length-1].region;
   }
   function storySetting(s){
-    if(s.edition!=="regional-2" || s.region!=="IND")return null;
+    if(s.edition!=="regional-2")return null;
+    if(s.countrySetVersion===2 && Object.hasOwn(newSettings,s.region))return newSettings[s.region];
+    if(s.region!=="IND")return null;
     const punjab=hash(s.seed,5801)%2;
     const name=punjab?"旁遮普邦":"泰米尔纳德邦";
     return {id:punjab?"punjab":"tamil",label:s.birthYear<1970?"今"+name+"一带":name};
@@ -130,9 +139,13 @@
     NGA:[["阿德","图恩德","奇迪","埃梅卡","穆萨","优素福"],["阿达","奇奥玛","阿米娜","齐纳布","博拉","托因"]],
     BRA:[["若昂","卢卡斯","佩德罗","拉斐尔","安德烈","加布里埃尔"],["玛丽亚","安娜","卡米拉","朱莉娅","贝娅特丽斯","克拉拉"]],
     PAK:[["阿里","哈姆扎","比拉尔","伊姆兰","阿西夫","萨阿德"],["萨娜","阿伊莎","马哈姆","玛丽娅姆","希娜","伊克拉"]],
-    BGD:[["拉菲克","阿尼克","沙基布","哈桑","拉希姆","萨吉布"],["里帕","法尔扎娜","希拉","努斯拉特","萨比娜","塔尼娅"]]
+    BGD:[["拉菲克","阿尼克","沙基布","哈桑","拉希姆","萨吉布"],["里帕","法尔扎娜","希拉","努斯拉特","萨比娜","塔尼娅"]],
+    JPN:[["健一","浩二","诚","直人","修","拓也"],["惠子","直美","由美","绫子","遥","美纪"]],
+    DEU:[["Martin","Andreas","Stefan","Daniel","Jonas","Tobias"],["Anna","Kathrin","Lena","Julia","Leonie","Sabine"]],
+    MEX:[["Luis","José","Miguel","Javier","Rafael","Daniel"],["María","Elena","Lucía","Carmen","Isabel","Teresa"]]
   };
-  function personalName(region,sex,seed){
+  function personalName(region,sex,seed,countrySetVersion=2){
+    if(countrySetVersion!==2 && Object.hasOwn(newSettings,region))return null;
     const names=personalNames[place(region)?.region];
     if(!names)return null;
     const group=sex==="female"?1:sex==="male"?0:hash(seed,5802)%2;

@@ -34,6 +34,7 @@
   const inWindow = (s, from, to) => s.age >= from && s.age <= to;
 
   function locality(s) {
+    if (s.countrySetVersion===2 && newPlaces[s.region]) return newPlaces[s.region];
     const location=root.LifeWorld.place(s.region,s.birthYear);
     const place = places[location?.region||s.region] || (location?.names?.length&&!location.usingNickname?
       {...fallback,names:location.names}:fallback);
@@ -45,6 +46,12 @@
       urban:"有人在店前洒过水，门边留下干燥的一小块，正容得下两个孩子。"};
     return place;
   }
+
+  const newPlaces = {
+    JPN:{names:["优","圭","真琴","明","薰"],urban:"放学路上的小店刚把空箱收进门，你们在屋檐下互相抖落伞上的水。",rural:"雨后田边的小路还黏着泥，你们各找了一根树枝，慢慢刮掉鞋底的土。"},
+    DEU:{names:["Alex","Kim","Toni","Luca","Robin"],urban:"街角面包店前停着两辆自行车，你帮一个孩子扶住车把，等对方把松开的鞋带系好。",rural:"镇边的小路起了风，你们追着一张掉出来的纸，直到它挂在篱笆上。"},
+    MEX:{names:["Mar","Luz","Álex","Dani","Cruz"],urban:"市场的摊主正在给秤盘擦水，你和另一个孩子蹲下来，捡起一颗滚到桌下的青柠。",rural:"赶集回来的大人坐在门口歇脚，你们拿装豆子的空袋折起了小船。"}
+  };
 
   function firstMeeting(s, prefix="friend-met-") {
     const row = s.log.find(e => e.threadKey?.startsWith(prefix));

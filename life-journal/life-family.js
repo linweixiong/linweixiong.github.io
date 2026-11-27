@@ -15,7 +15,7 @@
       if(s.edition==='regional-2'&&W.personalName){
         const gender=sex||(hash(s,id+35)%2?'female':'male');
         for(let n=0;n<16;n++){
-          const candidate=W.personalName(s.region,gender,hash(s,id+1700*n));
+          const candidate=W.personalName(s.region,gender,hash(s,id+1700*n),s.countrySetVersion||1);
           if(candidate&&!used.has(candidate)){name=candidate;break;}
         }
       }

@@ -21,6 +21,7 @@
     for (const source of update.sources || []) references.set(iso+"/"+source.id,source);
   }
   function packFor(s) {
+    if (s.countrySetVersion !== 2 && ["JPN","DEU","MEX"].includes(s.region)) return;
     return (s.edition === "regional-2" ? currentPacks : packs).get(isoOf(s));
   }
   const definitions = [

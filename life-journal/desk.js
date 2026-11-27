@@ -3,7 +3,7 @@
   'use strict';
   const W=globalThis.LifeWorld;
   function financialIdentity(s){
-    return {version:s.version,region:s.region,birthYear:s.birthYear,month:s.month,edition:s.edition,
+    return {version:s.version,region:s.region,birthYear:s.birthYear,month:s.month,edition:s.edition,countrySetVersion:s.countrySetVersion,
       ...(s.origin?{origin:{incomeGroup:s.origin.incomeGroup??null}}:{})};
   }
   function currencyLabel(s){
@@ -56,7 +56,7 @@
     const k=key(s),lived=LifeKeepsakes.livedYears(s);
     if(k!==peerKey||peers.some(p=>p.age>lived)){
       peerKey=k;
-      peers=[1,2,3,4].map(i=>Life.create({seed:hash(s,960+i),birthMode:s.birthMode||'newborn',birthYear:s.birthYear}));
+      peers=[1,2,3,4].map(i=>Life.create({seed:hash(s,960+i),birthMode:s.birthMode||'newborn',birthYear:s.birthYear,countrySetVersion:s.countrySetVersion||1}));
     }
     for(let i=0;i<4;i++){
       let p=peers[i],limit=400;
@@ -93,7 +93,7 @@
     const owned=familyPays(s,f)?'家庭财务':'财务概览';
     const info=LifeFinance.displayInfo(s);
     const basis='<div class="money-context"><span>'+esc(info.available&&info.year?info.year+'年价格基准':'')+'</span>'+
-      '<details><summary>金额怎么算</summary><p>'+esc(info.basis)+'</p></details></div>';
+      '<details><summary>金额怎么算</summary><p>'+esc(info.basis)+'</p><a href="./world-sources.html#accounts" target="_blank" rel="noopener">查看工资和生活支出的资料</a></details></div>';
     return '<section class="money-overview"><div class="money-total"><div><p>'+owned+' · '+esc(currencyLabel(s))+'</p><h2 id="walletTitle">净资产</h2></div><strong>'+esc(money(s,f.netWorth))+'</strong></div>'+
       '<dl class="money-balances">'+amountPair('现金',money(s,f.cash))+amountPair('存款',money(s,f.savings))+
       amountPair('基金估值',money(s,f.fundValue))+amountPair('住房估值',money(s,f.homeValue))+'</dl>'+
@@ -108,7 +108,9 @@
     let contents='';
     if(row){
       const paid=paidExpenses(row);
-      const lines=[['餐食',row.food],['居住',row.housing],['交通',row.transport],['其他开支',row.other]].filter(([,n])=>Number.isFinite(n));
+      const foodLabel=s.countrySetVersion===2 && s.region==='MEX'?'食品、饮料及烟草':'餐食';
+      const travelLabel=s.countrySetVersion===2 && ['JPN','MEX'].includes(s.region)?'交通与通信':'交通';
+      const lines=[[foodLabel,row.food],['居住',row.housing],[travelLabel,row.transport],['其他开支',row.other]].filter(([,n])=>Number.isFinite(n));
       contents='<p class="money-period">'+esc(yearRange(s,row.age))+'</p><dl class="cash-flow">'+
         amountPair('实际收入',money(s,row.income))+amountPair('实际支出',money(s,paid))+
         amountPair('收支结余',money(s,row.income-paid))+'</dl><p class="money-period">以上为年度生活结算。年内另行办理的交易见下方。</p>'+
@@ -381,6 +383,9 @@
     BRA: {ridge:[42,48,44,35,33,42,45,24,32,45], roof:'tile', bank:'slope', wall:'#b0767c'},
     PAK: {ridge:[48,46,49,47,48,45,46,50,48,49], roof:'parapet', bank:'canal', wall:'#a96e70'},
     BGD: {ridge:[53,53,52,53,52,51,52,53,53,52], roof:'gable', bank:'boat', wall:'#8c7383'},
+    JPN: {ridge:[47,43,41,44,48,50,52,53,53,53], roof:'tile', bank:'canal', wall:'#887b87'},
+    DEU: {ridge:[47,48,46,45,47,44,44,46,47,47], roof:'gable', bank:'lane', wall:'#9b717a'},
+    MEX: {ridge:[49,46,42,39,43,40,36,39,44,48], roof:'terrace', bank:'lane', wall:'#aa786e'},
     other: {ridge:[47,43,47,49,44,41,48,46,47,50], roof:'hip', bank:'lane', wall:'#967487'}
   };
   const dusk = {ink:'#14162b', outline:'#242039', near:'#33263f', distant:'#65527b',

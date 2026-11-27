@@ -11,6 +11,13 @@
     tight: "手头拮据"
   };
   const ROUTES = { study: "继续求学", work: "开始工作" };
+  function routeLabel(s,route) {
+    if (route==="work" && s?.countrySetVersion===2) {
+      if (s.region==="DEU") return "带薪职业培训";
+      if (s.region==="JPN" || s.region==="MEX") return "在校兼职";
+    }
+    return ROUTES[route] || "本次选择";
+  }
   const main = document.getElementById("main");
   const notice = document.getElementById("notice");
   const saveStatus = document.getElementById("saveStatus");
@@ -107,7 +114,7 @@
       '<picture><source media="(max-width:760px)" srcset="./assets/midnight-platform-768.webp"><img class="station-art" src="./assets/midnight-platform.webp" alt="" fetchpriority="high"></picture>' +
       '<div class="station-shade" aria-hidden="true"></div><div class="title-copy">' +
       '<p class="title-kicker"><i aria-hidden="true"></i>互动人生年鉴</p><h1>忽然而已</h1>' +
-      '<p class="title-description">你将随机出生在九个国家之一。<br>每逢人生岔路，时间都会停下，等你选择。</p>' +
+      '<p class="title-description">你将随机出生在十二个国家之一。<br>每逢人生岔路，时间都会停下，等你选择。</p>' +
       '<div class="title-controls"><button type="button" class="primary birth-button" data-action="birth"><i class="dice-mark" aria-hidden="true"></i>随机出生</button>' +
       (state ? button("resume", "返回当前人生") : "") + '</div></div></div>' +
       worldSettings() + '<div id="pastLives"></div></section>';
@@ -201,12 +208,12 @@
   }
   function report(s) {
     const r = s.report;
-    const label = ROUTES[s.route] || "本次选择";
+    const label = routeLabel(s,s.route);
     const earlier = previous?.financialIdentity;
-    const differentLife = earlier?.region && ["region","edition","version","birthYear"].some(key=>earlier[key]!==s[key]);
+    const differentLife = earlier?.region && ["region","edition","version","birthYear","countrySetVersion"].some(key=>earlier[key]!==s[key]);
     const compare = previous && (previous.route !== s.route || differentLife) && Array.isArray(previous.report?.rows);
     const detail = '<h3>这次 · ' + safe(label) + '</h3>' + ledger(s,r) +
-      (compare ? '<div class="archived"><h3>上次 · ' + safe(ROUTES[previous.route]) + '</h3>' +
+      (compare ? '<div class="archived"><h3>上次 · ' + safe(routeLabel(earlier,previous.route)) + '</h3>' +
         ledger(earlier||{},previous.report) + '</div>' : '') +
       (s.canRewind ? '<div class="story-actions">' + button("rewind", "回到16岁重选") + '</div>' : '');
     if (s.age !== 19 || s.ended || clock.reportRead) {
@@ -235,7 +242,7 @@
         page.featured.map(moment).join("")+'</ol></details>').join("")+'</section>':"";
     const milestones='<ul class="memories">'+memories.map(moment).join("")+'</ul>';
     const summary = [
-      s.route ? field("十六岁的选择", ROUTES[s.route] || s.route) : "",
+      s.route ? field("十六岁的选择", routeLabel(s,s.route)) : "",
       s.education?.years ? field("后续学习", s.education.path + " · " + s.education.years + "年") : "",
       s.job?.title ? field("从事过的职业", s.job.title) : "",
       s.household ? field("家庭生活", s.household) : "",

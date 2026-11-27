@@ -843,6 +843,20 @@
         plan === "technical-visit" ? "十四岁那次探校，你记住了实训时动手的感觉，也记住了往返要花多久。今天桌上摆着两种打算：留在学校继续学，或者接下眼前这份带薪学徒工作。" :
         "家里摊开账本，和你算接下来三年的日子。一条路能让你把更多时间留给学业；另一条路有带薪学徒的位置，可以边做边学，也能早些分担开销。";
       base.options[1].label = "做带薪学徒";
+      const region = root.LifeWorld?.storySetting(s)?.id;
+      if (region === "nrw") {
+        const year = s.birthYear===2026 ? 2026 : s.birthYear+s.age;
+        base.text=year>=1969 && year<=2026 ? "你和家人看着两份材料。一份是继续在学校读书的安排，另一份是本地企业的培训合同：有人带你做事，另外还得去职业学校上课。你想先走哪条路？" :
+          "有位师傅愿意带你学习，还会付你报酬。你把来回要花的时间写在纸上，和继续读书的安排摆到了一起。";
+        base.options[1].label="接受带薪职业培训";
+      } else if (region === "saitama" || region === "puebla") {
+        base.text=region==="saitama" ? "课程安排已经写下来了。街坊店里也在找一个放学后能来帮忙的人。家里想听你自己说，是把这几年留给学习，还是匀出几个白天的班次分担开支？" :
+          "家里把上课和赶车的时间写在一张纸上。附近有人愿意让你在白天课余做些理货的轻活。你可以专心念书，也可以一边念书一边带些工钱回家。";
+        base.options[1].label="边读书边做日间兼职";
+      }
+    }
+    if (base?.id === "retireplan" && s.countrySetVersion===2 && ["JPN","DEU","MEX"].includes(s.region)) {
+      base.options[0].note="退出全职工作，从明年起按这户人家预计的退休生活收入安排开销。公共养老金的领取条件另计。";
     }
     if (!base || base.id === "friend" || base.id === "self") {
       const regional = root.CountryStories?.localChoice(s,matches,draw);
@@ -879,12 +893,13 @@
   function create(input = {}) {
     input = input || {};
     const seed = Number.isFinite(input.seed) ? Math.trunc(input.seed) >>> 0 : 0;
+    const expanded = input.countrySetVersion === 2 || (input.version !== 2 && input.countrySetVersion !== 1);
     const birthMode = input.birthMode === "population" ? "population" : "newborn";
     const admittedYears = root.LifeWorld?.years;
     const birthYear = Number.isInteger(input.birthYear) && (input.birthYear === 2026 ||
       Array.isArray(admittedYears) && admittedYears.includes(input.birthYear)) ? input.birthYear : 2026;
     const sampled = typeof input.region === "string" && originFor(input.region,birthYear) ? input.region :
-      root.LifeWorld?.sample(seed,birthMode,birthYear) || localCities[draw(seed,6) % 2];
+      root.LifeWorld?.sample(seed,birthMode,birthYear,expanded ? 2 : 1) || localCities[draw(seed,6) % 2];
     const place = originFor(sampled,birthYear) || originFor(localCities[draw(seed,6) % 2],birthYear);
     const region = place.region;
     // 显式家境用于两版账本的可比样本。正常出生按五个家庭收入档分别生成起始预算。
@@ -918,9 +933,10 @@
       education:{path:"尚未分流",field:null,label:null,years:0},job:null,savings:0,assets:{fundUnits:0},
       housing:"租住或与家人同住",repairsUntil:0,annualAccounts:[],scenes:[],ending:null
     };
+    if (expanded) s.countrySetVersion = 2;
     if (input.edition === "regional-2" || (input.version !== 2 && root.LifeFinance)) {
       s.edition = "regional-2";
-      s.name = root.LifeWorld?.personalName?.(region,sex,seed) || s.name;
+      s.name = root.LifeWorld?.personalName?.(region,sex,seed,expanded ? 2 : 1) || s.name;
       if (regional(s)) {
         s.cash = root.LifeFinance.cashAtBirth(s);
         s.commute = "standard";
@@ -933,7 +949,13 @@
     else if (Number.isInteger(input.localStoriesFrom)) s.localStoriesFrom = input.localStoriesFrom;
     if (input.version !== 2) s.storyFrom = 0;
     else if (Number.isInteger(input.storyFrom)) s.storyFrom = input.storyFrom;
-    const text = local(s).birth || "你在" + origin.label + "出生。有人第一次把你抱进怀里，轻轻叫着你的小名。";
+    const setting = root.LifeWorld?.storySetting(s);
+    const newBirths = {
+      saitama:"你在埼玉县出生。家人练习了几次怎样托住你的头，又把写着你名字的纸翻出来，看着你轻轻念了一遍。",
+      nrw:"你在北莱茵-威斯特法伦州出生。窗外雨下了一阵，等在门口的人把湿外套脱下来，空出两只手，才敢接过你。",
+      puebla:"你在普埃布拉州出生。家人抱着你挪到窗边，让等了许久的人也看清你的脸。有人笑说，你倒睡得一点都不着急。"
+    };
+    const text = newBirths[setting?.id] || local(s).birth || "你在" + origin.label + "出生。有人第一次把你抱进怀里，轻轻叫着你的小名。";
     log(s,"来到" + origin.label,text,"birth",true);
     const descriptions = ["","家里预算很紧，需要逐项安排日常开销。","家里常得比较价格，留下一点应急钱。",
       "家里的日常开销有一定余地。","家里有一笔能应付变故的积蓄。","家里有比较充裕的积蓄。"];
@@ -1058,8 +1080,11 @@
     log(s,work ? "这一年的工资与生活" : "这一年的学习费用",text,"finance");
     if (s.age === 19) {
       const city = local(s);
-      const opportunity = work ? city.qualified || "同事愿意推荐你带班。你也可以留在一线，跟师傅把手艺练深。" :
+      let opportunity = work ? city.qualified || "同事愿意推荐你带班。你也可以留在一线，跟师傅把手艺练深。" :
         city.graduate || "三年的学习结束，你可以申请技术进修，也可以去应聘项目助理。";
+      if (work && s.countrySetVersion===2 && ["JPN","MEX"].includes(s.region)) {
+        opportunity="三年的课余白班攒下了一份工作经历。店里愿意让你带新人，也有人愿意介绍你去学一门手艺。";
+      }
       s.report = {startCash:s.routeCash,endCash:s.cash,rows:clone(s.ledger),opportunity};
       log(s,"三年以后",opportunity,"report",true);
     }
@@ -1164,6 +1189,9 @@
         if (regional(s)) s.routeTransactionIndex = s.transactions.length;
         s.career = pick === "study" ? "在校学生" : "学徒";
         s.education.path = pick === "study" ? "继续升学" : "在岗学习";
+        if (pick==="work" && s.countrySetVersion===2 && ["JPN","MEX"].includes(s.region)) {
+          s.career="学生兼职"; s.education.path="在校学习并做日间兼职";
+        }
         return pick === "study" ? local(s).education : local(s).job;
       case "opportunity":
         s.career = ({specialist:"技术进修生",office:"项目助理",lead:"带班人员",craft:"手艺学徒"})[pick];
