@@ -3,15 +3,18 @@
   "use strict";
   const W=600,H=300, assetRoot="./assets/life-stage/", images=new Map();
   const motifs=["bird","bell","hand","chair","ball","wheel","boat","book","pencil","bag","bowl","key","ticket","clock","tool","leaf","letter","cloth","lamp","coin"];
-  const countries=new Set(["CHN","FRA","EGY","IND","IDN","NGA","BRA","PAK","BGD","JPN","DEU","MEX"]);
   function points(n,info) {
-    if(n===2&&info?.state?.region==="IND"&&info.items?.[0]?.id==="__bird"&&globalThis.IndiaStage)return IndiaStage.nurseryPoints(info.state);
+    if(n===2&&info?.mode==="cradle"&&info.state?.region==="IND"&&info.items?.[0]?.id==="__bird"&&globalThis.IndiaStage)return IndiaStage.nurseryPoints(info.state);
+    if(info?.state?.region==="IND"){
+      const placed=globalThis.IndiaStage?.choicePoints?.(info.state,info);
+      if(placed?.length===n)return placed;
+    }
     return Array.from({length:n},(_,i)=>({x:n===1?.5:n===2?[.32,.68][i]:.18+.64*i/(n-1),y:.65}));
   }
   function image(key) {
     if (!images.has(key)) {
       const img=new Image();img.decoding="async";
-      if(key.startsWith("india-life/"))img.src="./assets/"+key+".webp";
+      if(key.includes("/"))img.src="./assets/"+key+".webp";
       else img.src=assetRoot+key+".webp";
       images.set(key,img);
     }
@@ -23,46 +26,31 @@
   function mount(canvas,info) {
     const ctx=canvas.getContext("2d");if(!ctx)return {act(){},destroy(){},setPaused(){}};
     canvas.width=W;canvas.height=H;ctx.imageSmoothingEnabled=false;
-    const s=info.state||{},items=info.items||[],pins=points(items.length);
-    const age=info.eventAge??s.age??0, country=({chengdu:"CHN",lyon:"FRA"})[s.region]||s.region;
+    const s=info.state||{},items=info.items||[];
+    const country=({chengdu:"CHN",lyon:"FRA"})[s.region]||s.region;
     const title=info.eventTitle||"",card=info.cardId||info.originCard||"";
-    const baby=info.kind==="cradle",toy=info.kind==="toy"&&(card==="make"||["那只轮子","玩具船的新航线","一起把轮子装回去","把它改成一艘船"].includes(title));
+    const baby=info.mode==="cradle",toy=info.kind==="toy"&&(card==="make"||["那只轮子","玩具船的新航线","一起把轮子装回去","把它改成一艘船"].includes(title));
     const kitchen=country==="CHN"&&card==="local-CHN-cd-noodle-shift"&&info.kind==="kitchen";
     const light=country==="FRA"&&card==="local-FRA-ly-window-answer";
     const livedPlace=["response","choice"].includes(info.mode);
-    const firstVisit=livedPlace&&card==="temper";
     const court=livedPlace&&country==="CHN"&&["local-CHN-cd-cooks-seat","local-CHN-cd-second-voice"].includes(card);
     const localCrafts={
-      "local-JPN-kite-tail":"kite","local-MEX-paper-cover":"cover","local-IND-ind-radio-game":"radio",
+      "local-JPN-kite-tail":"kite","local-MEX-paper-cover":"cover",
       "local-IDN-idn-angklung-rehearsal":"bamboo","local-NGA-nga-ayo-afternoon":"board","local-EGY-puppet-front-row":"puppet"
     };
     const craft=livedPlace&&localCrafts[card];
     const closeStall=livedPlace&&card==="local-CHN-cd-stall", kickabout=livedPlace&&card==="local-DEU-de-short-game";
     const memoryToy=toy&&info.mode==="echo",savedToy=toy&&["echo","response"].includes(info.mode);
-    const finished=info.kind==="farewell",obj=info.motif||"book";
+    const obj=info.motif||"book";
     let active="",elapsed=0,clock=0,last=null,request=0,dead=false,paused=Boolean(info.paused);
     let visible=!document.hidden,onscreen=true,needsFrame=true;
     const reduced=Boolean(info.reducedMotion), watched=new Set();
     const recent=info.originOption||"";
-    const india=country==="IND"&&globalThis.IndiaStage?.create(s,info,{
-      ctx,backdrop,canPaint:key=>ready(resource(key)),box,polygon,line,ellipse,shade,sheet,wisps,openBook
-    });
+    const art={ctx,backdrop,resource,canPaint:key=>ready(resource(key)),box,polygon,line,ellipse,shade,sheet,wisps,openBook,prop};
+    const india=country==="IND"&&globalThis.IndiaStage?.create(s,info,art);
+    const childhood=!india&&!baby&&!toy&&globalThis.ChildhoodArt?.create(s,info,art);
+    const inserts=new Map();
     if(canvas.dataset){delete canvas.dataset.stageAsset;delete canvas.dataset.stagePainted;}
-    function background(){
-      if(india)return india.asset;
-      if(baby||finished&&age<2)return country==="CHN"?"cd-cradle":"cradle";
-      if(toy)return "desk";
-      if(kitchen)return "stall";
-      if(light){
-        if(info.mode==="echo")return recent==="up"?"window-shut":"window-lit";
-        return active==="up"||recent==="up"?"window-close":active==="across"||recent==="across"?"FRA":"window-lit";
-      }
-      if(info.threadKey?.startsWith("home-lesson-button")||info.threadKey?.startsWith("home-echo-button"))return "sewing";
-      if(finished||info.kind==="memory")return "memory";
-      const b={doorstep:"doorstep",toy:"desk",school:"classroom",work:"workshop",table:"table",kitchen:"table",health:"health",home:"table"};
-      if(info.kind==="street")return s.residence==="rural"?"lane":countries.has(country)?country:"lane";
-      return b[info.kind]||"memory";
-    }
     function resource(key){
       const img=image(key);
       if(!ready(img)&&!watched.has(img)){watched.add(img);img.addEventListener("load",loaded); }
@@ -86,12 +74,12 @@
     }
     function backdrop(key,dx=0,zoom=1){
       const img=resource(key);
-      if(india&&canvas.dataset)canvas.dataset.stageAsset="./assets/"+key+".webp";
+      if(canvas.dataset)canvas.dataset.stageAsset=key.includes("/")?"./assets/"+key+".webp":assetRoot+key+".webp";
       if(ready(img)){
         ctx.drawImage(img,Math.round((W-W*zoom)/2+dx),Math.round((H-H*zoom)/2),Math.ceil(W*zoom),Math.ceil(H*zoom));
-        if(india&&canvas.dataset)canvas.dataset.stagePainted=canvas.dataset.stageAsset;
+        if(canvas.dataset)canvas.dataset.stagePainted=canvas.dataset.stageAsset;
       }else{
-        if(india&&canvas.dataset)delete canvas.dataset.stagePainted;
+        if(canvas.dataset)delete canvas.dataset.stagePainted;
         const g=ctx.createLinearGradient(0,0,W,H);g.addColorStop(0,"#28283d");g.addColorStop(1,"#735641");ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
       }
     }
@@ -107,7 +95,7 @@
       const chosen=active==="__bird"?0:active==="__bell"?1:-1;
       if(chosen>=0)angles[chosen]+=reduced?(chosen===0?-.23:.19):Math.sin(elapsed*(chosen===0?7:13))*.29*Math.exp(-1.45*elapsed);
       const look=chosen<0?0:(chosen===0?1:-1)*7*v;
-      backdrop(background(),look,1.04);
+      backdrop(country==="CHN"?"cd-cradle":"cradle",look,1.04);
       for(let i=0;i<2;i++){
         const pos=points(2)[i],x=pos.x*W+look,anchor=pos.y*H-31,angle=angles[i];
         const reach=anchor+10,px=x+Math.sin(angle)*reach,py=-10+Math.cos(angle)*reach;
@@ -133,7 +121,7 @@
         if(boat){shade(259,base,40);prop("boat",259,base+2,92);const xx=363-53*help+4*Math.sin(t*.8);
           shade(xx,base+9,21);prop("boat",xx,base+11,50);}
         else {chassis(302,base,true);prop("wheel",282,base+3,22);prop("wheel",mix(364,324,help),base+3,22);
-          if(!india){polygon([[197+22*help,237],[217+22*help,235],[213,300],[163,300]],"#485467");prop("hand",230+22*help,base-6,55,-.13);}}
+        }
         ctx.restore();
         return;
       }
@@ -193,52 +181,9 @@
       polygon([[x-spread,y-9],[x-3,y-5],[x,y-2],[x+4,y-6],[x+spread,y-11],[x+spread-3,y-29],[x+5,y-25],[x,y-21],[x-6,y-26],[x-spread+2,y-29]],"#f0d9ad");
       line(x,y-21,x,y-2,"#b99a79");for(let k=0;k<3;k++){line(x-spread+6,y-23+k*4,x-6,y-20+k*4,"#c1aa89");line(x+5,y-19+k*4,x+spread-7,y-23+k*4,"#c1aa89")}
     }
-    function token(kind,x,y,size,p,t,selected){
-      if(!motifs.includes(kind))kind="book";
-      const lift=beat(p), scale=size;
-      const displacement=selected&&["ticket","key","bag","tool","cloth","boat","ball","chair","bowl","wheel"].includes(kind)?p*(kind==="chair"?-28:20):0;
-      const xx=x+displacement,yy=y-(kind==="leaf"||kind==="bird"?Math.sin(t*1.3)*1.7:0);
-      if(kind==="chair"){
-        prop("chair",xx,328,size*1.77,-.025*p);return;
-      }
-      shade(xx,yy-1,scale*.32);
-      if(selected&&kind==="book"&&p>.15){openBook(x,y,p);return}
-      if(selected&&kind==="letter"&&p>.08){
-        prop("letter",x,y,size,-.03);
-        polygon([[x-19,y-18],[x+18,y-18],[x+16,y-19-25*p],[x-20,y-19-25*p]],"#f1d8a9");
-        for(let j=0;j<3&&p>.45;j++)line(x-13,y-15-22*p+j*4,x+9-j*3,y-17-22*p+j*4,"#b8a28f");
-        return;
-      }
-      if(kind==="hand"){
-        // Extend the cuff to the near edge so a hand never floats by itself.
-        const hy=y-lift*8;polygon([[x-30,hy-16],[x-12,hy-4],[x-23,300],[x-70,300]],"#494051");
-        polygon([[x-29,hy-14],[x-24,hy-11],[x-47,300],[x-62,300]],"#5b5267");
-        line(x-29,hy-9,x-16,hy-3,"#857786",2);
-        prop(kind,x,hy,size,selected?-.13*p:0);return;
-      }
-      if(selected&&p>.08&&kind==="pencil"){
-        const l=x-23,r=x+24;
-        polygon([[l,y-2],[r,y-3],[r+6,y-23],[l+7,y-24]],"#f2dcaf");
-        for(let j=0;j<3;j++){const ink=limit(p*3-j);if(ink>0)line(l+9,y-18+j*4,l+9+27*ink,y-18+j*4,"#71636d");}
-        prop(kind,l+13+p*25,y-11,scale*.8,-.38);return;
-      }
-      if(selected&&p>.08&&kind==="cloth"){
-        const spread=p*29;polygon([[xx-15-spread,yy-4],[xx+14+spread,yy-4],[xx+21+spread,yy-21],[xx-7-spread,yy-26]],"#688993");
-        for(let n=0;n<5;n++)line(xx-8-spread,yy-23+n*4,xx+15+spread,yy-19+n*3,"#88a4a0");
-        prop(kind,xx,yy-1,scale*.75,-.08*p);return;
-      }
-      const turn=["key","tool","pencil","bell","wheel","ball"].includes(kind)?lift*.22+(selected?.17*p:0):0;
-      prop(kind,xx,yy-lift*(selected?8:0),scale,turn);
-      if(kind==="bowl")wisps(xx,yy-size*.64,t,selected?.35:.19);
-      if(kind==="lamp"){
-        const g=ctx.createRadialGradient(xx,yy-size*.57,1,xx,yy-size*.57,25+10*p);
-        g.addColorStop(0,"rgba(255,193,94,.31)");g.addColorStop(1,"rgba(255,184,87,0)");ctx.fillStyle=g;ctx.fillRect(xx-40,yy-size-12,80,85);
-      }
-      if(selected&&kind==="coin"&&p>.12){for(let i=0;i<3;i++){const slide=limit(p*3-i);if(slide)ellipse(x+14+slide*(11+i*8),y-1-i%2,6,2,"#dca25f");}}
-      if(selected&&kind==="clock"&&p>.05){const cx=xx,cy=yy-size*.46;line(cx,cy,cx+Math.sin(p*2.2)*11,cy-Math.cos(p*2.2)*11,"#e9c798",2);}
-    }
     function river(t,p){
-      backdrop(background());
+      const key=info.mode==="echo"?(recent==="up"?"window-shut":"window-lit"):active==="up"||recent==="up"?"window-close":active==="across"||recent==="across"?"FRA":"window-lit";
+      backdrop(key);
       if(info.mode==="echo"&&recent==="up"){
         // The neighbors moved. This window must not appear to signal back.
         box(319,82,18,36,"#403847");for(let i=0;i<9;i++)line(319,83+i*4,336,83+i*4,"#55484b");
@@ -250,37 +195,6 @@
         streetSill();for(let i=0;i<3;i++)if(p>i*.22){box(350+i*13,210,6,9,"#c9754c");box(352+i*13,205,2,5,"#ffdc90");}return;
       }
       if(items.length){prop("lamp",192,225,52);prop("lamp",408,225,52);}
-    }
-    function ordinary(t,v){
-      const key=background();backdrop(key);
-      if(info.kind==="street"||key==="doorstep")streetSill();
-      if(finished){
-        if(age<2){line(242,0,242,103,"#ba9373");prop("bird",242,145,48);}
-        else if(age<6)prop("ball",287,251,53);
-        else {
-          const settle=reduced?1:smooth(t/2.7);
-          openBook(290,251,.6+.30*settle);
-          const fold=Math.sin(settle*Math.PI);
-          if(fold>.02)polygon([[290,245],[288,228],[289+27*fold,215],[292+18*fold,239]],"#eed5a9");
-        }
-        const g=ctx.createLinearGradient(0,0,W,H);g.addColorStop(0,"rgba(64,47,62,.02)");g.addColorStop(1,"rgba(29,27,51,.24)");ctx.fillStyle=g;ctx.fillRect(0,0,W,H);return;
-      }
-      if(key==="sewing"&&!info.cardId&&!active)return;
-      const list=items.length?items:[{id:"",motif:obj}];const pos=points(list.length);
-      list.forEach((item,i)=>{
-        const choice=active&&active===item.id;
-        let motif=item.motif||obj;if(item.id==="__page"&&info.motif&&!choice)motif=info.motif;
-        // The existing receipt can be replayed with no props array.
-        if(!items.length&&info.mode==="response"&&info.originOption)motif=obj;
-        const size=list.length>2?60:76;
-        const x=pos[i].x*W,y=pos[i].y*H+size*.55;
-        ctx.save();
-        if(active&&!choice&&items.length>1)ctx.globalAlpha=1-v*.56;
-        token(motif,x,y,size,choice?v:0,t,Boolean(choice));ctx.restore();
-      });
-      if(info.kind==="memory"&&info.tone==="失去"){
-        const g=ctx.createLinearGradient(0,0,W,0);g.addColorStop(0,"rgba(47,40,67,.16)");g.addColorStop(1,"rgba(47,40,67,0)");ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
-      }
     }
     function courtyard(t,v){
       const kitchenSide=card==="local-CHN-cd-cooks-seat";
@@ -297,11 +211,6 @@
         if(p>.65)line(402,y-1,432,y-5,"#935c50",2);
       }
       ctx.restore();
-    }
-    function doorway(t,v){
-      const option=recent||active,p=recent?1:v,reach=option==="wave";
-      const zoom=1+p*(reach?.12:.22);
-      backdrop("greeting",(reach?1:-1)*p*(reach?24:47),zoom);
     }
     function dailyPlace(t,v){
       const option=recent||active,p=recent?1:v;
@@ -353,7 +262,7 @@
     }
     function localObjects(t,v){
       const option=recent||active,p=recent?1:v;
-      backdrop(india?india.asset:craft==="cover"||craft==="kite"||craft==="bamboo"?"desk":craft==="radio"||craft==="board"?"table":"workshop");
+      backdrop(craft==="board"?"table":craft==="puppet"?"workshop":"desk");
       if(craft==="kite"){
         if(!p||p<1){ctx.save();ctx.globalAlpha=1-p;sheet(288,244,182,51);line(186,225,373,208,"#b68c60",2);ctx.restore();}
         if(p>0){ctx.save();ctx.globalAlpha=p;
@@ -365,13 +274,6 @@
         if(option==="cover-one"&&p){sheet(305+37*p,242,65,43,"#c39061");line(288+37*p,202,282+37*p,237,"#a67c5c",2);}
         if(option==="corner-pieces")for(let i=0;i<4;i++){const x=228+26*i*p,y=240-i%2*16*p;
           polygon([[x-9,y-3],[x+10,y-6],[x+12,y-23]],"#e4c79e");line(x-8,y-4,x+10,y-17,"#a88362");}
-      }else if(craft==="radio"){
-        const x=365,y=183,paperX=193;shade(x+38,y+58,49);box(x,y,88,55,"#573e3b");box(x+3,y+3,82,49,"#ae7952");box(x+7,y+8,44,34,"#554548");
-        for(let i=0;i<6;i++)for(let j=0;j<5;j++)box(x+10+i*6,y+11+j*6,3,2,"#97795c");
-        box(x+55,y+8,26,8,"#e1c19a");box(x+65,y+8,2,8,"#a15d49");for(const n of [61,76]){ellipse(x+n,y+32,7,7,"#483e43");ellipse(x+n-1,y+30,4,4,"#a6937a");}
-        line(x+11,y-1,x+43,y-42,"#c3b7a2",2);sheet(paperX,243,88,38);
-        if(option==="map"){for(let n=0;n<4;n++){const a=limit(p*4-n);if(a)line(paperX-28+n*13,231-n%2*12,paperX-28+n*13+13*a,231-n%2*12+(n%2?12:-12)*a,"#677c80",2);}}
-        if(option==="voices"&&p)for(let n=0;n<3;n++){const xx=x+74+n*9;line(xx,176-n*6,xx+4,170-n*7,"#e4c89a",2);}
       }else if(craft==="bamboo"){
         bamboo(213,246,option==="play-part"?Math.sin(t*8)*5+p*6:0);
         bamboo(385-25*(option==="practice-entry"?p:0),244,option==="practice-entry"?Math.sin(t*6)*3+p*4:0);
@@ -396,16 +298,24 @@
     function draw(){
       needsFrame=false;const v=active?smooth(elapsed/1.05):0;
       ctx.clearRect(0,0,W,H);
+      if(canvas.dataset)canvas.dataset.shot=india?"india":childhood?"childhood":"dedicated";
       if(india){
-        if(info.mode==="cradle"||baby&&age===0&&items.some(i=>i.id==="__bird"||i.id==="__bell"))india.nurseryShot(clock,v,active,elapsed,prop);
+        if(baby)india.nurseryShot(clock,v,active,elapsed,prop);
         else if(toy)workshop(clock,v);
-        else if(card==="local-IND-ind-radio-game"&&info.mode!=="echo")localObjects(clock,v);
         else india.draw(clock,v,active);
         return;
       }
+      if(childhood){childhood.draw(clock,v,active);return;}
       if(baby)cradle(clock,v);else if(toy)workshop(clock,v);else if(kitchen)noodle(clock,v);else if(light)river(clock,v);
-      else if(firstVisit)doorway(clock,v);else if(court)courtyard(clock,v);else if(closeStall||kickabout)dailyPlace(clock,v);
-      else if(craft)localObjects(reduced||paused?0:clock,v);else ordinary(clock,v);
+      else if(court)courtyard(clock,v);else if(closeStall||kickabout)dailyPlace(clock,v);
+      else if(craft)localObjects(reduced||paused?0:clock,v);
+      else {
+        const moment=active&&info.responseView?info.responseView:info;
+        if(!inserts.has(active))inserts.set(active,EventInserts.resolve(moment,active,s));
+        const key=inserts.get(active);
+        if(canvas.dataset)canvas.dataset.shot=key.startsWith("story-frames/")?"storyboard":key==="journal"?"journal":"object";
+        EventInserts.draw(moment,s,art,clock,v,active,key);
+      }
     }
     function schedule(){if(!dead&&visible&&onscreen&&!request)request=requestAnimationFrame(frame)}
     function frame(now){

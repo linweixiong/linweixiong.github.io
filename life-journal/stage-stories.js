@@ -227,7 +227,7 @@
     if(origin && (e.kind==="choice"||motif==="hand"))motif=origin.motif;
     if(toyEvent)motif=/轮子装回去|^那只轮子$/.test(title)?"wheel":"boat";
     const caption=toyEvent && e.kind==="choice" ? (motif==="wheel"?"你把轮子装回了原处。":"没了轮子的车身，成了你手里的小船。") : firstSentence(text,title);
-    return {mode,kind,caption,detail:text,eventTitle:title,motif,tone:e.tone||null,
+    return {mode,kind,caption,detail:text,eventTitle:title,eventKind:e.kind,eventId:e.id||null,motif,tone:e.tone||null,
       ...(origin?{originCard:origin.id,originOption:origin.option,originAction:origin.label}:{}),
       sourceKey:e.sourceKey||null,threadKey:e.threadKey||null,eventAge:age,items:[]};
   }
@@ -247,17 +247,20 @@
     if(forced){
       if(forced.kind==="ending")return finished(s);
       const snapshot=logView(s,forced);
-      if(!s.ended && !s.pending && s.age===0)snapshot.items=cradleItems.map(i=>({...i}));
+      if(forced.kind==="birth"&&snapshot.eventAge===0){
+        snapshot.mode="cradle";snapshot.kind="cradle";
+        if(!s.ended&&s.age===0&&!s.pending)snapshot.items=cradleItems.map(i=>({...i}));
+      }
       return snapshot;
     }
     if(s.ended)return finished(s);
     if(s.pending)return pendingView(s);
-    if(s.age===0)return cradle();
     // 计时器公布该条之后才取年内场景。默认调用只读已发生的日志。
     if(Number.isFinite(context?.fraction)){
       const revealed=(s.scenes||[]).filter(row=>row.at<=context.fraction).at(-1);
       if(revealed)return logView(s,revealed);
     }
+    if(s.age===0)return cradle();
     const year=(s.log||[]).filter(row=>row.age===s.age && row.kind!=="decision");
     const chosen=year.findLast(row=>row.kind==="choice");
     const echo=year.findLast(row=>row.kind==="echo"||row.threadKey?.startsWith("home-echo-"));

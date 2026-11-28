@@ -13,7 +13,7 @@
     if(s.pending&&!context.event&&!context.action){
       items=s.pending.options.map(o=>({...items.find(i=>i.id===o.id),id:o.id,
         label:items.find(i=>i.id===o.id)?.label||o.label,disabled:!!o.disabled}));
-    }else if(!s.ended&&!s.pending&&s.age===0&&!context.event&&!context.action){
+    }else if(mode==="cradle"&&!s.ended&&!s.pending&&s.age===0&&!context.event&&!context.action){
       items=[...items,...toys.filter(t=>!items.some(i=>i.id===t.id))];
     }else if(!s.ended&&!s.pending&&s.age>0&&!context.action&&!items.length){
       items=[page];
@@ -61,10 +61,10 @@
       pager.lastElementChild.disabled=group===groups-1;
       const config={...m,kind:m.kind||m.mode,state:s,items:list,paused:isPaused,reducedMotion:motion.matches};
       if(window.LifeStageArt)art=window.LifeStageArt.mount(canvas,config);
-      else{art=null;window.LifeDesk?.drawMapScene?.(canvas,s,window.LifeKeepsakes.livedYears(s));}
+      else{art=null;canvas.getContext("2d")?.clearRect(0,0,canvas.width,canvas.height);}
       const pos=window.LifeStageArt?.points(list.length,config)||list.map((_,i)=>({x:list.length===1?.5:.18+.64*i/(list.length-1),y:.65}));
       pins.dataset.count=list.length;
-      const nursery=s.region==='IND'&&list[0]?.id==='__bird'&&list[1]?.id==='__bell';
+      const nursery=m.mode==='cradle'&&s.region==='IND'&&list[0]?.id==='__bird'&&list[1]?.id==='__bell';
       pins.classList.toggle('india-nursery-pins',nursery);
       pins.innerHTML=interactive?list.map((item,i)=>{
         const o=s.pending?.options.find(o=>o.id===item.id);
@@ -97,7 +97,7 @@
     function response(r){
       clearTimeout(timer);preview=false;playing=r;back.hidden=false;back.textContent='看眼前场景';
       group=Math.max(0,Math.floor(r.model.items.findIndex(i=>i.id===r.id)/4));
-      draw(r.state,r.model,false);art?.act?.(r.id);copy(r.result,r.result.caption||r.event?.title);
+      draw(r.state,{...r.model,responseView:r.result},false);art?.act?.(r.id);copy(r.result,r.result.caption||r.event?.title);
       // The actual next operation is live throughout this brief visual response.
       timeResponse();
     }

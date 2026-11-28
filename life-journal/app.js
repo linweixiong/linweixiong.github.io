@@ -357,12 +357,12 @@
       '</span><div><strong>' + safe(e.title) + '</strong><p>' + narrative(s,e.text) + '</p>' + replayButton(s,e) + sourceNote(e.sourceKey) + '</div></li>').join("") + '</ol>';
   }
   function stageModel(s) {
-    const model=stage.describe(s,{fraction:clock.fraction});
+    const model=stage.describe(s,clock.started?{fraction:clock.fraction}:{});
     if(s.ended) return {...model,items:[{id:"__album",motif:"book",label:"翻开人生手记"}]};
     if(s.pending || !clock.started)return model;
-    if(s.age===19 && s.report && !clock.reportRead)return {...model,kind:"table",mode:"scene",eventTitle:"三年后的账本",
+    if(s.age===19 && s.report && !clock.reportRead)return {kind:"table",mode:"scene",eventAge:s.age,eventTitle:"三年后的账本",
       caption:"十六岁以来的三年收支都记在账上。",detail:s.report.opportunity,items:[{id:"__ledger",motif:"coin",label:"翻开账本"}]};
-    if(needsReflection(s))return {...model,kind:"memory",mode:"scene",eventTitle:s.age+"岁的反思",
+    if(needsReflection(s))return {kind:"memory",mode:"scene",eventAge:s.age,eventTitle:s.age+"岁的反思",
       caption:"你可以在手记里留下一句话。",detail:reflectionQuestion(s),items:[{id:"__note",motif:"pencil",label:"拿起笔"}]};
     return model;
   }
