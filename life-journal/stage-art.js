@@ -4,12 +4,16 @@
   const W=600,H=300, assetRoot="./assets/life-stage/", images=new Map();
   const motifs=["bird","bell","hand","chair","ball","wheel","boat","book","pencil","bag","bowl","key","ticket","clock","tool","leaf","letter","cloth","lamp","coin"];
   const countries=new Set(["CHN","FRA","EGY","IND","IDN","NGA","BRA","PAK","BGD","JPN","DEU","MEX"]);
-  function points(n) {
+  function points(n,info) {
+    if(n===2&&info?.state?.region==="IND"&&info.items?.[0]?.id==="__bird"&&globalThis.IndiaStage)return IndiaStage.nurseryPoints(info.state);
     return Array.from({length:n},(_,i)=>({x:n===1?.5:n===2?[.32,.68][i]:.18+.64*i/(n-1),y:.65}));
   }
   function image(key) {
     if (!images.has(key)) {
-      const img=new Image();img.decoding="async";img.src=assetRoot+key+".webp";images.set(key,img);
+      const img=new Image();img.decoding="async";
+      if(key.startsWith("india-life/"))img.src="./assets/"+key+".webp";
+      else img.src=assetRoot+key+".webp";
+      images.set(key,img);
     }
     return images.get(key);
   }
@@ -40,7 +44,12 @@
     let visible=!document.hidden,onscreen=true,needsFrame=true;
     const reduced=Boolean(info.reducedMotion), watched=new Set();
     const recent=info.originOption||"";
+    const india=country==="IND"&&globalThis.IndiaStage?.create(s,info,{
+      ctx,backdrop,canPaint:key=>ready(resource(key)),box,polygon,line,ellipse,shade,sheet,wisps,openBook
+    });
+    if(canvas.dataset){delete canvas.dataset.stageAsset;delete canvas.dataset.stagePainted;}
     function background(){
+      if(india)return india.asset;
       if(baby||finished&&age<2)return country==="CHN"?"cd-cradle":"cradle";
       if(toy)return "desk";
       if(kitchen)return "stall";
@@ -77,9 +86,12 @@
     }
     function backdrop(key,dx=0,zoom=1){
       const img=resource(key);
+      if(india&&canvas.dataset)canvas.dataset.stageAsset="./assets/"+key+".webp";
       if(ready(img)){
         ctx.drawImage(img,Math.round((W-W*zoom)/2+dx),Math.round((H-H*zoom)/2),Math.ceil(W*zoom),Math.ceil(H*zoom));
+        if(india&&canvas.dataset)canvas.dataset.stagePainted=canvas.dataset.stageAsset;
       }else{
+        if(india&&canvas.dataset)delete canvas.dataset.stagePainted;
         const g=ctx.createLinearGradient(0,0,W,H);g.addColorStop(0,"#28283d");g.addColorStop(1,"#735641");ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
       }
     }
@@ -112,7 +124,7 @@
       line(x-23,base-18,x+17,base-18,"#a27355");line(x-16,base-13,x+13,base-13,"#e8ab70");
     }
     function workshop(t,v){
-      backdrop("desk");
+      backdrop(india?india.asset:"desk");
       ctx.save();ctx.translate(300,240);ctx.scale(1.33,1.33);ctx.translate(-300,-240);
       const choice=savedToy?(obj==="wheel"?"repair":"story"):active;
       const p=savedToy?1:v,boat=choice==="story",repair=choice==="repair",base=242;
@@ -121,7 +133,7 @@
         if(boat){shade(259,base,40);prop("boat",259,base+2,92);const xx=363-53*help+4*Math.sin(t*.8);
           shade(xx,base+9,21);prop("boat",xx,base+11,50);}
         else {chassis(302,base,true);prop("wheel",282,base+3,22);prop("wheel",mix(364,324,help),base+3,22);
-          polygon([[197+22*help,237],[217+22*help,235],[213,300],[163,300]],"#485467");prop("hand",230+22*help,base-6,55,-.13);}
+          if(!india){polygon([[197+22*help,237],[217+22*help,235],[213,300],[163,300]],"#485467");prop("hand",230+22*help,base-6,55,-.13);}}
         ctx.restore();
         return;
       }
@@ -341,7 +353,7 @@
     }
     function localObjects(t,v){
       const option=recent||active,p=recent?1:v;
-      backdrop(craft==="cover"||craft==="kite"||craft==="bamboo"?"desk":craft==="radio"||craft==="board"?"table":"workshop");
+      backdrop(india?india.asset:craft==="cover"||craft==="kite"||craft==="bamboo"?"desk":craft==="radio"||craft==="board"?"table":"workshop");
       if(craft==="kite"){
         if(!p||p<1){ctx.save();ctx.globalAlpha=1-p;sheet(288,244,182,51);line(186,225,373,208,"#b68c60",2);ctx.restore();}
         if(p>0){ctx.save();ctx.globalAlpha=p;
@@ -384,6 +396,13 @@
     function draw(){
       needsFrame=false;const v=active?smooth(elapsed/1.05):0;
       ctx.clearRect(0,0,W,H);
+      if(india){
+        if(info.mode==="cradle"||baby&&age===0&&items.some(i=>i.id==="__bird"||i.id==="__bell"))india.nurseryShot(clock,v,active,elapsed,prop);
+        else if(toy)workshop(clock,v);
+        else if(card==="local-IND-ind-radio-game"&&info.mode!=="echo")localObjects(clock,v);
+        else india.draw(clock,v,active);
+        return;
+      }
       if(baby)cradle(clock,v);else if(toy)workshop(clock,v);else if(kitchen)noodle(clock,v);else if(light)river(clock,v);
       else if(firstVisit)doorway(clock,v);else if(court)courtyard(clock,v);else if(closeStall||kickabout)dailyPlace(clock,v);
       else if(craft)localObjects(reduced||paused?0:clock,v);else ordinary(clock,v);

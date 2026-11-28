@@ -39,6 +39,7 @@
     return Number.isInteger(s.localStoriesFrom) && s.age >= s.localStoriesFrom;
   }
   function eligible(s, item, matches) {
+    if (item.indiaLife && !root.IndiaLife?.active(s)) return false;
     // 「现在」模式将当代背景延续一生；其他模式按经历当年检查资料。
     const year = s.birthYear === 2026 ? 2026 : s.birthYear + s.age;
     if (year > 2026 && (item.fromYear != null || item.toYear != null)) return false;

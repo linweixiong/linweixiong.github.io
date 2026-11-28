@@ -240,7 +240,7 @@
     return {mode:"farewell",kind:"farewell",caption,detail:ending?.text||caption,eventTitle:ending?.title||"告别",tone:null,items:[],
       memory:remembered?{age:remembered.age,title:remembered.title,text:remembered.text}:null};
   }
-  function describe(s,context={}) {
+  function describeBase(s,context={}) {
     if(!s)return {mode:"scene",kind:"home",caption:"",eventTitle:"",detail:"",tone:null,items:[]};
     if(!s.ended && !s.pending && s.age===0 && ["__bird","__bell"].includes(context?.action))return cradle(context.action);
     const forced=realEvent(s,context?.event);
@@ -265,6 +265,10 @@
     if(chosen||echo||moment)return logView(s,chosen||echo||moment);
     const caption=s.age<6?"今天的故事，从你身边开始。":s.age<16?"又长大了一岁。":s.age<65?"新的一年从这里开始。":"又一年了。";
     return {mode:"scene",kind:kindIn("",null,s.age),caption,detail:"",eventTitle:"",tone:null,items:[]};
+  }
+  function describe(s,context={}){
+    const view=describeBase(s,context);
+    return root.IndiaLife?.active(s,view.eventAge??s?.age)?root.IndiaLife.stage(s,view,context):view;
   }
   root.StageStories=Object.freeze({describe,kinds:Object.freeze(kinds),motifs:Object.freeze(motifs)});
 })(globalThis);

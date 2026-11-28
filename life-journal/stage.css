@@ -14,6 +14,9 @@
 .stage-frame .stage-window #lifeScene {display:block;width:100%;height:100%;max-height:none;border:0;border-radius:0;
   aspect-ratio:2/1;image-rendering:pixelated;object-fit:fill}
 .stage-pins {position:absolute;inset:0;pointer-events:none}
+.india-nursery-pins {container-type:inline-size}
+.stage-pins.india-nursery-pins .stage-pin {width:14%;max-width:85px;height:27%}
+.stage-pins.india-nursery-pins .stage-pin span {top:calc(50% + var(--label-shift));max-width:none;padding:2px 5px}
 .stage-pin {position:absolute;display:block;pointer-events:auto;transform:translate(-50%,-50%);width:23%;max-width:155px;
   height:42%;min-height:44px;padding:0;border:0;border-radius:0;background:transparent;color:#fff6df;
   font:600 clamp(12px,1vw,15px)/1.3 var(--sans);text-align:center;-webkit-tap-highlight-color:transparent}
@@ -88,8 +91,8 @@
   .stage-frame .stage-caption {margin-top:2px;font-size:16px}
   .stage-pin {width:32%;font-size:12px}
   .stage-pins[data-count="3"] .stage-pin {width:29%}
-  .stage-pin span {padding:2px 4px;max-width:125%}
-  .stage-pins[data-count="4"] .stage-pin span {max-width:102%;font-size:12px}
+  .stage-pin span {padding:2px 4px;max-width:100%;box-sizing:border-box;white-space:normal}
+  .stage-pins[data-count="4"] .stage-pin span {font-size:12px}
   .stage-layout .stage-side,.stage-layout .decision,.stage-document :is(.recall,.report) {padding:13px}
   .stage-layout .stage-daily {padding:0}
   .stage-layout .stage-daily>* {margin:0 0 8px}

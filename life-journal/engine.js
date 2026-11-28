@@ -875,6 +875,7 @@
   }
   function publicCard(c,s) {
     if (!c) return null;
+    if (root.IndiaLife?.active(s)) c=root.IndiaLife.adapt(s,c);
     return {id:c.id,title:c.title,text:c.text,type:c.type,category:c.category,...(c.sourceKey ? {sourceKey:c.sourceKey} : {}),
       ...(c.id.startsWith("thread-") && c.tone ? {tone:c.tone} : {}),
       options:c.options.map(({id,label,note,effects,follow,outcome}) =>
@@ -965,7 +966,11 @@
       nrw:"你在北莱茵-威斯特法伦州出生。窗外雨下了一阵，等在门口的人把湿外套脱下来，空出两只手，才敢接过你。",
       puebla:"你在普埃布拉州出生。家人抱着你挪到窗边，让等了许久的人也看清你的脸。有人笑说，你倒睡得一点都不着急。"
     };
-    const text = newBirths[setting?.id] || local(s).birth || "你在" + origin.label + "出生。有人第一次把你抱进怀里，轻轻叫着你的小名。";
+    if (root.IndiaLife && s.region === "IND" && setting) {
+      if (input.version !== 2) s.indiaLifeFrom = 0;
+      else if (Number.isInteger(input.indiaLifeFrom)) s.indiaLifeFrom = input.indiaLifeFrom;
+    }
+    const text = (root.IndiaLife?.active(s) && root.IndiaLife.birth(s)) || newBirths[setting?.id] || local(s).birth || "你在" + origin.label + "出生。有人第一次把你抱进怀里，轻轻叫着你的小名。";
     log(s,"来到" + origin.label,text,"birth",true);
     const descriptions = ["","家里预算很紧，需要逐项安排日常开销。","家里常得比较价格，留下一点应急钱。",
       "家里的日常开销有一定余地。","家里有一笔能应付变故的积蓄。","家里有比较充裕的积蓄。"];
@@ -1388,7 +1393,10 @@
     if (s.pending) log(s,s.pending.title,s.pending.text,"decision",false,s.pending.sourceKey);
   }
 
-  function enableCityStoriesForNextYear(s) {
+  function enableRegionalStoriesForNextYear(s) {
+    if (root.IndiaLife && s.region === "IND" && s.edition === "regional-2" && !owns(s,"indiaLifeFrom")) {
+      s.indiaLifeFrom = s.age + 1;
+    }
     if (s.edition === "regional-2" && localCities.includes(s.region) && !owns(s,"cityArcFrom")) {
       s.cityArcFrom = s.age + 1;
     }
@@ -1397,7 +1405,7 @@
     if (s?.version === 1) return legacy.advance(s);
     if (!s || s.version !== 2 || s.ended || s.pending) return s;
     const fresh = clone(s);
-    enableCityStoriesForNextYear(fresh);
+    enableRegionalStoriesForNextYear(fresh);
     if (hasLocalHouseholdBudget(fresh) && !owns(fresh,"householdBudgetFrom")) fresh.householdBudgetFrom = fresh.age + 1;
     if (root.CountryStories && !owns(fresh,"localStoriesFrom")) fresh.localStoriesFrom = fresh.age + 1;
     if (!owns(fresh,"storyFrom")) fresh.storyFrom = fresh.age + 1;
@@ -1408,7 +1416,7 @@
     if (s?.version === 1) return legacy.next(s);
     if (!s || s.version !== 2 || s.ended || s.pending) return s;
     const fresh = clone(s);
-    enableCityStoriesForNextYear(fresh);
+    enableRegionalStoriesForNextYear(fresh);
     if (hasLocalHouseholdBudget(fresh) && !owns(fresh,"householdBudgetFrom")) fresh.householdBudgetFrom = fresh.age + 1;
     if (root.CountryStories && !owns(fresh,"localStoriesFrom")) fresh.localStoriesFrom = fresh.age + 1;
     if (!owns(fresh,"storyFrom")) fresh.storyFrom = fresh.age + 1;
@@ -1471,6 +1479,7 @@
       (!Number.isInteger(s.localStoriesFrom) || s.localStoriesFrom < 0 || s.localStoriesFrom > 105)) ||
       (owns(s,"storyFrom") && (!Number.isInteger(s.storyFrom) || s.storyFrom < 0 || s.storyFrom > 105)) ||
       (owns(s,"householdBudgetFrom") && (!Number.isInteger(s.householdBudgetFrom) || s.householdBudgetFrom < 0 || s.householdBudgetFrom > 105)) ||
+      (owns(s,"indiaLifeFrom") && (!Number.isInteger(s.indiaLifeFrom) || s.indiaLifeFrom < 0 || s.indiaLifeFrom > 105)) ||
       (owns(s,"cityArcFrom") && (!Number.isInteger(s.cityArcFrom) || s.cityArcFrom < 0 || s.cityArcFrom > 105))) return false;
     try {
       if (!originFor(s.region,s.birthYear)) return false;

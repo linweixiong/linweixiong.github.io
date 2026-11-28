@@ -34,7 +34,11 @@
     function copy(m,text){
       const value=text||m.caption||m.eventTitle||'';
       caption.textContent=window.LifeDesk.moneyText(state,value);
-      const name=({choice:'点道具做选择',cradle:'最初的日子',scene:'此刻',response:'你的选择',echo:'往事回响',farewell:'告别'})[m.mode]||'此刻';
+      let name=({choice:'点道具做选择',cradle:'最初的日子',scene:'此刻',response:'你的选择',echo:'往事回响',farewell:'告别'})[m.mode]||'此刻';
+      if(state.region==='IND'&&window.IndiaStage&&(m.mode==='choice'||m.mode==='scene')){
+        const place=window.IndiaStage.sceneLabel(state,m);
+        name=m.mode==='choice'?place+' · 画中选择':place;
+      }
       speaker.textContent=(preview&&Number.isFinite(m.eventAge)?m.eventAge+'岁 · ':'')+name;
       el.dataset.mode=m.mode;
       const ref=window.CountryStories?.references.get(m.sourceKey);
@@ -58,13 +62,16 @@
       const config={...m,kind:m.kind||m.mode,state:s,items:list,paused:isPaused,reducedMotion:motion.matches};
       if(window.LifeStageArt)art=window.LifeStageArt.mount(canvas,config);
       else{art=null;window.LifeDesk?.drawMapScene?.(canvas,s,window.LifeKeepsakes.livedYears(s));}
-      const pos=window.LifeStageArt?.points(list.length)||list.map((_,i)=>({x:list.length===1?.5:.18+.64*i/(list.length-1),y:.65}));
+      const pos=window.LifeStageArt?.points(list.length,config)||list.map((_,i)=>({x:list.length===1?.5:.18+.64*i/(list.length-1),y:.65}));
       pins.dataset.count=list.length;
+      const nursery=s.region==='IND'&&list[0]?.id==='__bird'&&list[1]?.id==='__bell';
+      pins.classList.toggle('india-nursery-pins',nursery);
       pins.innerHTML=interactive?list.map((item,i)=>{
         const o=s.pending?.options.find(o=>o.id===item.id);
         const label=window.LifeDesk.moneyText(s,item.label);
-        return '<button type="button" class="stage-pin" data-prop="'+escape(item.id)+'" style="left:'+(pos[i].x*100)+'%;top:'+(pos[i].y*100)+
-          '%" aria-label="'+escape(o?'选择：'+window.LifeDesk.moneyText(s,o.label):label)+'"'+(o?' aria-describedby="option-note-'+s.pending.options.indexOf(o)+'"':'')+(item.disabled||o?.disabled?' disabled':'')+'><span>'+escape(label)+'</span></button>';
+        const shift=nursery?'--label-shift:'+((.85-pos[i].y)*50)+'cqw;':'';
+        return '<button type="button" class="stage-pin" data-prop="'+escape(item.id)+'" style="'+shift+'left:'+(pos[i].x*100)+'%;top:'+(pos[i].y*100)+
+          '%" aria-label="'+escape(o?'选择：'+window.LifeDesk.moneyText(s,o.label):label)+'"'+(o?' aria-describedby="option-note-'+s.pending.options.indexOf(o)+'"':'')+(item.disabled||o?.disabled?' disabled':'')+'><span>'+escape(nursery?(i===0?'小鸟':'小铃'):label)+'</span></button>';
       }).join(''):'';
       canvas.setAttribute('aria-label',m.eventTitle||m.caption||'这一年的人生场景');
     }
