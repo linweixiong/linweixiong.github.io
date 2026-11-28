@@ -14,6 +14,8 @@
 .stage-frame .stage-window #lifeScene {display:block;width:100%;height:100%;max-height:none;border:0;border-radius:0;
   aspect-ratio:2/1;image-rendering:pixelated;object-fit:fill}
 .stage-pins {position:absolute;inset:0;pointer-events:none}
+.stage-pins.dhaka-door-pins .stage-pin {width:30.5%;max-width:none;height:29.3%}
+.stage-pins.dhaka-door-pins .stage-pin span {top:auto;bottom:2px}
 .india-nursery-pins {container-type:inline-size}
 .stage-pins.india-nursery-pins .stage-pin {width:14%;max-width:85px;height:27%}
 .stage-pins.india-nursery-pins .stage-pin span {top:calc(50% + var(--label-shift));max-width:none;padding:2px 5px}

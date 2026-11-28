@@ -80,4 +80,39 @@
       ])
     ]
   });
+
+  const panelSource="bd-dhaka-panel",panelKey="BGD/"+panelSource,cardId="bd-dhaka-door-panel";
+  const inWorkshop={setting:"dhaka",requires:urban};
+  const met="bd-dhaka-door-intro",streetEcho="bd-dhaka-door-street-echo",insideEcho="bd-dhaka-door-inside-echo";
+  const has=(s,id,age)=>s.log.some(e=>e.id===id&&e.sourceKey===panelKey&&e.age===age);
+  // The two possible age-eleven memories both include this child's actual mother.
+  // Her lifespan comes from the household record, never from the selected answer.
+  const motherPresent=s=>globalThis.LifeFamily?.members({...s,age:11}).some(p=>p.role==="母亲"&&p.living);
+  const remembers=(pick,echo)=>s=>s.decisions["local-BGD-"+cardId]===pick&&has(s,echo,11);
+  registry.revise("BGD",{
+    sources:[source(panelSource,"联合国教科文组织 · 达卡三轮车彩绘、花鸟纹样与画师受托作画","https://ich.unesco.org/en/RL/rickshaws-and-rickshaw-painting-in-dhaka-01589?RL=01589")],
+    scenes:[
+      scene(met,8,8,"门响一声，她就知道",
+        "达卡的作坊里，你常蹲在母亲旁边，看她给客运三轮车的车尾板描红花。蓝鸟的眼睛总是最后才点。回到家，你抬了一下老木门，松插销哐当地掉下来。从屋里看，门框右上角有道小裂口。母亲埋头洗笔，笑着说：「听这一下就知道是你。」",panelSource,
+        {...inWorkshop,storyBeat:met,available:motherPresent}),
+      scene("bd-dhaka-door-street-later",18,18,"抬门以前，先停一下",
+        "搬进新住处，门有点涩。你下意识伸手往上一提，又笑着收了回来。你想起当年母亲站在达卡街上，差点去开三轮车上的那扇门。眼前的门不用抬，往里轻轻一推就开了。",panelSource,
+        {...inWorkshop,storyBeat:"bd-dhaka-door-street-later",available:remembers("street",streetEcho)}),
+      scene("bd-dhaka-door-inside-later",18,18,"把凳子转半圈",
+        "借宿的小表亲趴在窗边，听见巷子里响过几次脚步，都够不着看。你原想站着替人瞧，想起当年母亲画的那只书包，索性坐低一点。你把凳子转了半圈，让孩子坐到正好看得见门口的地方。",panelSource,
+        {...inWorkshop,storyBeat:"bd-dhaka-door-inside-later",available:remembers("inside",insideEcho)})
+    ],
+    choices:[
+      choice(9,cardId,"画反了的门闩",
+        "搬家前，常到达卡作坊补漆的车主送来一块空车尾板。听说你们要搬，他主动请母亲把这扇旧门画上去：「两边我都喜欢，你们挑。」母亲放好颜料。站在巷口能看见你每天走回来的路，坐到她的凳子上，才看得见门闩。",
+        panelSource,[
+          {id:"street",label:"从巷口画那扇门",note:"退到放学时转过的那个弯。站在这边，只看得见门板外侧。",effects:{knowledge:2,happiness:2},
+            outcome:"你跑到巷口比给母亲看。她从外面画下掉了漆的绿门板和左上角的小裂口，松插销藏在另一面。车主把画好的板装回去，骑过街角，那扇门才在车后朝向你们。",
+            follow:{after:2,id:streetEcho,title:"手伸向车尾那扇门",text:"搬走两年，达卡街口一辆三轮车转过弯，你才看见车尾左上角那道裂口。你喊熟人停一停。母亲上前伸手做了个提门的动作，停在漆面前，自己先笑了：「还以为得抬一下才推得开。」车主把脚撑在地上，等你们看够。"}},
+          {id:"inside",label:"坐到母亲的位置画",note:"从屋里看门口，留意她每天能看到什么。",effects:{bond:3,knowledge:1},
+            outcome:"你看着母亲落笔，脱口说门闩画反了。她在门外补上一个背书包的小人：「每天走到这儿，你就开始喊我了。」你挪到她的凳子上坐了一会儿。门框的裂口果然在右手边。她把起稿的小纸折好，夹进画本。",
+            follow:{after:2,id:insideEcho,title:"门外那个背书包的人",text:"搬来两年，母亲摊开画本晾潮气，那张起稿的小纸从夹页里滑出来。画里的书包只有一根带子。你问她另一根呢。她笑着说：「你那时候总只肯背一边呀。」你把脚边的书包捞上膝盖，两根带子好好地并排放着。"}}
+        ],{...inWorkshop,storyBeat:cardId,available:s=>motherPresent(s)&&has(s,met,8)})
+    ]
+  });
 })();

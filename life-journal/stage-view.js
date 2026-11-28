@@ -66,6 +66,7 @@
       pins.dataset.count=list.length;
       const nursery=m.mode==='cradle'&&s.region==='IND'&&list[0]?.id==='__bird'&&list[1]?.id==='__bell';
       pins.classList.toggle('india-nursery-pins',nursery);
+      pins.classList.toggle('dhaka-door-pins', m.mode==='choice' && m.cardId==='local-BGD-bd-dhaka-door-panel');
       pins.innerHTML=interactive?list.map((item,i)=>{
         const o=s.pending?.options.find(o=>o.id===item.id);
         const label=window.LifeDesk.moneyText(s,item.label);

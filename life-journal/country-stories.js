@@ -43,7 +43,7 @@
     // 「现在」模式将当代背景延续一生；其他模式按经历当年检查资料。
     const year = s.birthYear === 2026 ? 2026 : s.birthYear + s.age;
     if (year > 2026 && (item.fromYear != null || item.toYear != null)) return false;
-    return (!item.setting || item.setting === root.LifeWorld.storySetting(s)?.id) &&
+    return (!item.setting || item.setting === root.LifeWorld.storySetting(s)?.id) && (!item.available || item.available(s)) &&
       year >= (item.fromYear ?? -Infinity) && year <= (item.toYear ?? Infinity) && matches(s, item);
   }
   function sampleHome(s) {
@@ -85,8 +85,8 @@
     // 先照顾窗口将关闭的经历；同一窗口内仍可过出不同的人生。
     const last = Math.min(...pool.map(x=>x.maxAge));
     const candidates = pool.filter(x=>x.maxAge===last);
-    const row = candidates[draw(s.seed,4721,s.age) % candidates.length];
-    return {title:row.title,text:row.text,sourceKey:iso+"/"+row.source};
+    const row = candidates.find(x=>x.storyBeat) || candidates[draw(s.seed,4721,s.age) % candidates.length];
+    return {title:row.title,text:row.text,sourceKey:iso+"/"+row.source,...(row.storyBeat?{id:row.storyBeat}:{})};
   }
   function localChoice(s,matches,draw) {
     if (!active(s)) return null;
@@ -94,7 +94,7 @@
     const pool = (packFor(s)?.choices || []).filter(x=>x.age===s.age &&
       (!x.cityArc || (Number.isInteger(s.cityArcFrom) && s.age >= s.cityArcFrom)) && eligible(s,x,matches));
     if (!pool.length) return householdChoice(s);
-    const row = pool[draw(s.seed,4722,s.age)%pool.length];
+    const row = pool.find(x=>x.storyBeat) || pool[draw(s.seed,4722,s.age)%pool.length];
     const detail = row.resolve ? row.resolve(s) : null;
     return {...row,...detail,id:"local-"+iso+"-"+row.id,sourceKey:iso+"/"+row.source,type:"choice",category:row.category||"personal"};
   }

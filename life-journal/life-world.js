@@ -124,6 +124,7 @@
   }
   function storySetting(s){
     if(s.edition!=="regional-2")return null;
+    if(s.region==="BGD"&&s.dhakaWorkshop===1)return {id:"dhaka",label:"达卡"};
     if(s.countrySetVersion===2 && Object.hasOwn(newSettings,s.region))return newSettings[s.region];
     if(s.region!=="IND")return null;
     const punjab=hash(s.seed,5801)%2;

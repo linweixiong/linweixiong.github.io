@@ -28,7 +28,7 @@
     const a=21+hash(s,240)%16,b=22+hash(s,241)%17;
     const jobs=['为邻里修理器具','做仓储和清点工作','在店里照看生意','做缝补和制作工作','在学校做后勤','经营小摊','在家照料家人','做运输工作'];
     const people=[
-      relative('母亲',a,244,jobs[hash(s,300)%jobs.length],0,'female'),
+      relative('母亲',a,244,s.region==='BGD'&&s.dhakaWorkshop===1?'在达卡的作坊给客运三轮车彩绘':jobs[hash(s,300)%jobs.length],0,'female'),
       relative('父亲',b,245,jobs[hash(s,301)%jobs.length],0,'male'),
       relative('祖辈',a+21+hash(s,304)%12,247,'家里的长辈')
     ];

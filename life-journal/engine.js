@@ -960,11 +960,18 @@
     }
     if (input.version !== 2) s.storyFrom = 0;
     else if (Number.isInteger(input.storyFrom)) s.storyFrom = input.storyFrom;
+    // Preserve existing families on replay. For new lives this setting narrows a
+    // craft occupation in an urban family to a particular workshop in Dhaka.
+    if (s.region === "BGD" && s.edition === "regional-2" && s.residence === "urban" && birthYear >= 1972 &&
+        (birthYear<=2015 || birthYear===2026) &&
+        (input.version !== 2 || input.dhakaWorkshop === 1) && root.LifeWorld?.hash(seed,300)%8 === 3 &&
+        root.LifeWorld.hash(seed,7741)%3 === 0) s.dhakaWorkshop = 1;
     const setting = root.LifeWorld?.storySetting(s);
     const newBirths = {
       saitama:"你在埼玉县出生。家人练习了几次怎样托住你的头，又把写着你名字的纸翻出来，看着你轻轻念了一遍。",
       nrw:"你在北莱茵-威斯特法伦州出生。窗外雨下了一阵，等在门口的人把湿外套脱下来，空出两只手，才敢接过你。",
-      puebla:"你在普埃布拉州出生。家人抱着你挪到窗边，让等了许久的人也看清你的脸。有人笑说，你倒睡得一点都不着急。"
+      puebla:"你在普埃布拉州出生。家人抱着你挪到窗边，让等了许久的人也看清你的脸。有人笑说，你倒睡得一点都不着急。",
+      dhaka:"你在达卡出生。母亲在附近的作坊给客运三轮车画花鸟。她洗过手才来抱你，指甲边还留着一点洗不掉的蓝。"
     };
     if (root.IndiaLife && s.region === "IND" && setting) {
       if (input.version !== 2) s.indiaLifeFrom = 0;
@@ -1015,7 +1022,8 @@
       selected.push({title:pair[0],text:pair[1]});
     }
     const personal=selected.map((row,i) => ({at:(i ? 65 + draw(s.seed,54,s.age) % 21 : 20 + draw(s.seed,53,s.age) % 21) / 100,
-      title:row.title,text:row.text,kind:row.kind || "event",...(row.sourceKey ? {sourceKey:row.sourceKey} : {})}));
+      title:row.title,text:row.text,kind:row.kind || "event",...(row.sourceKey ? {sourceKey:row.sourceKey} : {}),
+      ...(row.sourceKey && row.id ? {id:row.id} : {})}));
     return personal.concat(globalThis.LifeWorld?.worldScenes?.(s)||[]).sort((a,b)=>a.at-b.at);
   }
   function yearScenes(s) {
@@ -1276,8 +1284,9 @@
     log(s,selected.label,outcome,"choice",true,card.sourceKey,thread);
     fact(s,card.category || "personal",selected.label,outcome);
     if (selected.follow) {
-      const {after,title,text} = selected.follow;
+      const {after,title,text,id:followId} = selected.follow;
       s.promises.push({age:s.age+after,title,text,...(card.sourceKey ? {sourceKey:card.sourceKey} : {}),
+        ...(followId ? {id:followId} : {}),
         ...(thread ? {...thread,threadKey:card.id+"-echo"} : {})});
     }
     s.pending = null;
@@ -1384,7 +1393,7 @@
     }
     for (const echo of s.promises.filter(x => x.age === s.age)) {
       const thread = echo.threadKey ? {threadKey:echo.threadKey,...(echo.tone ? {tone:echo.tone} : {})} : null;
-      log(s,echo.title,echo.text,"echo",true,echo.sourceKey,thread);
+      log(s,echo.title,echo.text,"echo",true,echo.sourceKey,echo.id?{...thread,id:echo.id}:thread);
     }
     s.promises = s.promises.filter(x => x.age > s.age);
     storyEvents(s);

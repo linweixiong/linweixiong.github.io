@@ -4,6 +4,10 @@
   const W=600,H=300, assetRoot="./assets/life-stage/", images=new Map();
   const motifs=["bird","bell","hand","chair","ball","wheel","boat","book","pencil","bag","bowl","key","ticket","clock","tool","leaf","letter","cloth","lamp","coin"];
   function points(n,info) {
+    if(n===2&&info?.state?.region==="BGD"){
+      const placed=globalThis.BangladeshDoorArt?.points?.(info);
+      if(placed?.length===n)return placed;
+    }
     if(n===2&&info?.mode==="cradle"&&info.state?.region==="IND"&&info.items?.[0]?.id==="__bird"&&globalThis.IndiaStage)return IndiaStage.nurseryPoints(info.state);
     if(info?.state?.region==="IND"){
       const placed=globalThis.IndiaStage?.choicePoints?.(info.state,info);
@@ -47,10 +51,16 @@
     const reduced=Boolean(info.reducedMotion), watched=new Set();
     const recent=info.originOption||"";
     const art={ctx,backdrop,resource,canPaint:key=>ready(resource(key)),box,polygon,line,ellipse,shade,sheet,wisps,openBook,prop};
+    const doorArt=country==="BGD"&&globalThis.BangladeshDoorArt;
+    const door=doorArt?.shot?.(info);
+    const doorResult=door&&info.responseView&&doorArt.shot({...info,...info.responseView,state:s});
     const india=country==="IND"&&globalThis.IndiaStage?.create(s,info,art);
-    const childhood=!india&&!baby&&!toy&&globalThis.ChildhoodArt?.create(s,info,art);
+    const childhood=!door&&!india&&!baby&&!toy&&globalThis.ChildhoodArt?.create(s,info,art);
     const inserts=new Map();
-    if(canvas.dataset){delete canvas.dataset.stageAsset;delete canvas.dataset.stagePainted;}
+    if(canvas.dataset){delete canvas.dataset.stageAsset;delete canvas.dataset.stagePainted;delete canvas.dataset.stageFrame;}
+    if(door){
+      for(const key of new Set([...(door.preload||[]),...(doorResult?.preload||[])]))resource(key);
+    }
     function resource(key){
       const img=image(key);
       if(!ready(img)&&!watched.has(img)){watched.add(img);img.addEventListener("load",loaded); }
@@ -298,6 +308,16 @@
     function draw(){
       needsFrame=false;const v=active?smooth(elapsed/1.05):0;
       ctx.clearRect(0,0,W,H);
+      if(door){
+        const shot=active&&doorResult?doorResult:door;
+        if(canvas.dataset)canvas.dataset.shot="bangladesh-door";
+        backdrop(shot.asset);
+        if(ready(resource(shot.asset))){
+          const frameKey=doorArt.paint(ctx,shot,clock,active?elapsed:clock,reduced||paused,resource);
+          if(canvas.dataset&&frameKey)canvas.dataset.stageFrame=frameKey;
+        }
+        return;
+      }
       if(canvas.dataset)canvas.dataset.shot=india?"india":childhood?"childhood":"dedicated";
       if(india){
         if(baby)india.nurseryShot(clock,v,active,elapsed,prop);

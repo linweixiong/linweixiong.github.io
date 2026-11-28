@@ -1,6 +1,17 @@
 (() => {
   "use strict";
 
+  if (new URLSearchParams(location.search).get("chapter") === "dhaka") {
+    const loader = document.createElement("script");
+    loader.src = "./dhaka-preview.js?v=20261128-dhaka";
+    loader.onerror = () => {
+      const main = document.getElementById("main");
+      main.innerHTML = '<p>片段载入中断。<a href="?chapter=dhaka">重新打开</a> · <a href="./">返回游戏</a></p>';
+    };
+    document.body.append(loader);
+    return;
+  }
+
   const STORE_KEY = "rensheng-shouji.save.v1";
   const REGIONS = {
     chengdu: { name: "成都", country: "中国" },
@@ -459,7 +470,10 @@
     const stageEl=main.querySelector(".stage-frame");
     if (stageReceipt && (stageReceipt.after!==state || !stageEl || stageReceipt.done ||
         !stageReceipt.held && stageReceipt.until && performance.now()>=stageReceipt.until)) stageReceipt=null;
-    if(stageReceipt && !stageReceipt.until) stageReceipt.until=performance.now()+1450;
+    if(stageReceipt && !stageReceipt.until){
+      const duration=stageReceipt.model.cardId==="local-BGD-bd-dhaka-door-panel"?4000:1450;
+      stageReceipt.until=performance.now()+duration;
+    }
     if (stageEl) stageController=stage.mount(stageEl,{state,model:stageModel(state),paused:clock.started&&clock.paused,onChoice:commitChoice,onAction:stageAction,onReview:paint,receipt:stageReceipt});
     for (const draft of drafts) {
       const node = main.querySelector(draft.selector);

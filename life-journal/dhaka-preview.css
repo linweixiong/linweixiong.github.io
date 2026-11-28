@@ -1,0 +1,9 @@
+.chapter-reader {width:min(100%, 52rem);margin:clamp(1.5rem, 5vh, 4rem) auto;}
+.chapter-reader h1 {font:normal clamp(1.8rem,5vw,3rem)/1.25 var(--pixel);margin:.25rem 0 .7rem;}
+.chapter-reader .chapter-place {color:var(--night-gold);margin:0;}
+#chapter-age {font-size:1rem;color:var(--night-muted);margin:.65rem 0;}
+.chapter-steps,.chapter-tools {display:flex;align-items:center;flex-wrap:wrap;gap:.75rem;}
+.chapter-steps:not(:empty) {margin-top:1rem;}
+.chapter-tools {margin-top:1.1rem;justify-content:space-between;}
+.chapter-tools a {color:var(--night-cool);}
+.chapter-reader.without-subtitles .stage-frame figcaption {display:none;}

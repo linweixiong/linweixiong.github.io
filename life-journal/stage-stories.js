@@ -62,6 +62,7 @@
     ["pk-training-ride","street","最后那两个拐弯，是陪着走，还是画给人看？",{walk:["hand","陪人走到窗口"],draw:["pencil","画清两个拐弯"]}]
   ]);
   country("BGD",[
+    ["bd-dhaka-door-panel","home","搬家前，母亲想把这扇门画在车尾。你站在哪里看？",{street:["pencil","到巷口画"],inside:["chair","坐到母亲身边"]}],
     ["bd-school-return","school","重新坐回教室，先补自己的题，还是先对课本？",{catchup:["pencil","先问积下的题"],pair:["book","和伙伴对缺页"]}],
     ["bd-language-page","school","同一样东西有两种叫法，怎么放进这一页？",{words:["book","给两种叫法留位置"],drawing:["pencil","画意思，请伙伴念"]}],
     ["bd-loom-delay","work","布还在织机上，约好见面的日子快到了。",{simplify:["hand","商量简化最后一段"],wait:["cloth","等织完，先借一块"]}],
@@ -262,6 +263,12 @@
     }
     if(s.age===0)return cradle();
     const year=(s.log||[]).filter(row=>row.age===s.age && row.kind!=="decision");
+    // The age-eleven school choice has its own receipt. Show the family's return
+    // to the painted door in the following quiet interval, before the next scene.
+    if(s.region==="BGD" && s.age===11 && Number.isFinite(context?.fraction)){
+      const doorEcho=year.find(row=>row.kind==="echo" && row.sourceKey==="BGD/bd-dhaka-panel");
+      if(doorEcho)return logView(s,doorEcho);
+    }
     const chosen=year.findLast(row=>row.kind==="choice");
     const echo=year.findLast(row=>row.kind==="echo"||row.threadKey?.startsWith("home-echo-"));
     const moment=year.findLast(e=>e.threadKey||e.kind==="milestone") || year.at(-1);
@@ -271,6 +278,11 @@
   }
   function describe(s,context={}){
     const view=describeBase(s,context);
+    if(s?.region==="BGD"&&view.sourceKey==="BGD/bd-dhaka-panel"&&view.mode!=="choice"){
+      const dialogue=view.detail?.match(/「[^」]+」/u)?.[0];
+      const action=view.detail?.match(/[^。！？]+[。！？]$/u)?.[0];
+      if(dialogue||action)return {...view,caption:dialogue?"母亲说："+dialogue:action};
+    }
     return root.IndiaLife?.active(s,view.eventAge??s?.age)?root.IndiaLife.stage(s,view,context):view;
   }
   root.StageStories=Object.freeze({describe,kinds:Object.freeze(kinds),motifs:Object.freeze(motifs)});
