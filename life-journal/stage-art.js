@@ -59,7 +59,9 @@
     const inserts=new Map();
     if(canvas.dataset){delete canvas.dataset.stageAsset;delete canvas.dataset.stagePainted;delete canvas.dataset.stageFrame;}
     if(door){
-      for(const key of new Set([...(door.preload||[]),...(doorResult?.preload||[])]))resource(key);
+      const shots=[door,doorResult].filter(Boolean);
+      const keys=shots.flatMap(shot=>reduced?[...shot.still,...shot.nextStill]:shot.preload);
+      for(const key of new Set(keys))resource(key);
     }
     function resource(key){
       const img=image(key);
@@ -311,9 +313,20 @@
       if(door){
         const shot=active&&doorResult?doorResult:door;
         if(canvas.dataset)canvas.dataset.shot="bangladesh-door";
-        backdrop(shot.asset);
-        if(ready(resource(shot.asset))){
-          const frameKey=doorArt.paint(ctx,shot,clock,active?elapsed:clock,reduced||paused,resource);
+        const still=reduced||paused, primary=still?shot.still[0]:shot.asset;
+        if(still && !shot.still.every(key=>ready(resource(key)))){
+          // A slow connection must not reveal the moving scene's opening pose
+          // or an incomplete collage while the selected still image downloads.
+          if(canvas.dataset){
+            canvas.dataset.stageAsset="./assets/"+primary+".webp";
+            delete canvas.dataset.stageFrame;delete canvas.dataset.stagePainted;
+          }
+          ctx.fillStyle="#232139";ctx.fillRect(0,0,W,H);
+          return;
+        }
+        backdrop(primary);
+        if(ready(resource(primary))){
+          const frameKey=doorArt.paint(ctx,shot,clock,active?elapsed:clock,still,resource);
           if(canvas.dataset&&frameKey)canvas.dataset.stageFrame=frameKey;
         }
         return;

@@ -29,7 +29,12 @@
       "inside-echo":["notebook","folded-slip",bag],
       "street-later":["new-lift","new-push"],"inside-later":[turnStool,cousin]
     }[beat];
-    return {beat,asset:base+keys[0],preload:keys.map(k=>base+k),studio,child,stand,seated,bag,turnStool,cousin};
+    const stillFrames={intro:["room",studio],choose:["commission","alley","room"],street:["door-board","street-paint"],
+      inside:[seated,"inside-paint",child],"street-echo":["reach"],"inside-echo":[bag],
+      "street-later":["new-push"],"inside-later":[cousin]};
+    const paths=names=>names.map(name=>base+name);
+    return {beat,asset:base+keys[0],preload:paths(keys),still:paths(stillFrames[beat]),
+      nextStill:beat==="choose"?paths([...stillFrames.street,...stillFrames.inside]):[],studio,child,stand,seated,bag,turnStool,cousin};
   }
   function points(info){
     if(info?.cardId!==card||info.mode!=="choice"||info.items?.length!==2)return null;
